@@ -29,30 +29,48 @@ export default function CalendarPanel({
   onViewChange,
 }) {
   const now = new Date();
-  const vy  = viewYear  ?? now.getFullYear();
-  const vm  = viewMonth ?? now.getMonth();
+  const vy = viewYear ?? now.getFullYear();
+  const vm = viewMonth ?? now.getMonth();
 
-  const pad        = (n) => String(n).padStart(2, "0");
-  const monthKey   = `${vy}-${pad(vm + 1)}`;
-  const todayStr   = now.toISOString().slice(0, 10);
-  const monthNames = t.monthNames ?? ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const dayNames   = t.days ?? ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const pad = (n) => String(n).padStart(2, "0");
+  const monthKey = `${vy}-${pad(vm + 1)}`;
+  const todayStr = now.toISOString().slice(0, 10);
+  const monthNames = t.monthNames ?? [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const dayNames = t.days ?? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const daysInMonth = new Date(vy, vm + 1, 0).getDate();
-  const firstDay    = (() => { const d = new Date(vy, vm, 1).getDay(); return d === 0 ? 6 : d - 1; })();
+  const firstDay = (() => {
+    const d = new Date(vy, vm, 1).getDay();
+    return d === 0 ? 6 : d - 1;
+  })();
 
   const prevMonth = () => {
     if (vm === 0) onViewChange(vy - 1, 11);
-    else          onViewChange(vy, vm - 1);
+    else onViewChange(vy, vm - 1);
   };
   const nextMonth = () => {
     if (vm === 11) onViewChange(vy + 1, 0);
-    else           onViewChange(vy, vm + 1);
+    else onViewChange(vy, vm + 1);
   };
 
   const recordMap = useMemo(() => {
     const map = {};
-    (records || []).forEach((r) => { map[r.date] = r; });
+    (records || []).forEach((r) => {
+      map[r.date] = r;
+    });
     return map;
   }, [records]);
 
@@ -62,23 +80,41 @@ export default function CalendarPanel({
   );
 
   const avgPain = monthRecords.length
-    ? Math.round(monthRecords.reduce((s, r) => s + combineScore(r), 0) / monthRecords.length)
+    ? Math.round(
+        monthRecords.reduce((s, r) => s + combineScore(r), 0) /
+          monthRecords.length,
+      )
     : null;
 
   const counts = {
-    flareUps:     monthRecords.filter((r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4).length,
-    periodDays:   monthRecords.filter((r) => r.period >= 2).length,
-    medicineDays: monthRecords.filter((r) => r.acuteMedicines?.length > 0).length,
+    flareUps: monthRecords.filter(
+      (r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4,
+    ).length,
+    periodDays: monthRecords.filter((r) => r.period >= 2).length,
+    medicineDays: monthRecords.filter((r) => r.acuteMedicines?.length > 0)
+      .length,
     activityDays: monthRecords.filter((r) => r.physicalActivity > 0).length,
-    filled:       monthRecords.length,
+    filled: monthRecords.length,
   };
 
   const checkboxes = [
-    { key: "period",   label: t.showPeriod   ?? "Show period",   color: "#e05a5a" },
-    { key: "flareUp",  label: t.showFlareUp  ?? "Show flare-up", color: "#f5a623" },
-    { key: "medicine", label: t.showMedicine ?? "Show medicine",  color: "#7b68ee" },
-    { key: "note",     label: t.showNote     ?? "Show notes",     color: "#5bc0de" },
-    { key: "activity", label: t.showActivity ?? "Show activity",  color: "#5cb85c" },
+    { key: "period", label: t.showPeriod ?? "Show period", color: "#e05a5a" },
+    {
+      key: "flareUp",
+      label: t.showFlareUp ?? "Show flare-up",
+      color: "#f5a623",
+    },
+    {
+      key: "medicine",
+      label: t.showMedicine ?? "Show medicine",
+      color: "#7b68ee",
+    },
+    { key: "note", label: t.showNote ?? "Show notes", color: "#5bc0de" },
+    {
+      key: "activity",
+      label: t.showActivity ?? "Show activity",
+      color: "#5cb85c",
+    },
   ];
 
   return (
@@ -94,7 +130,10 @@ export default function CalendarPanel({
         </button>
         <h2
           className="text-lg font-bold tracking-wide"
-          style={{ color: "#5a3a34", fontFamily: "'Playfair Display', Georgia, serif" }}
+          style={{
+            color: "#5a3a34",
+            fontFamily: "'Playfair Display', Georgia, serif",
+          }}
         >
           {monthNames[vm]} {vy}
         </h2>
@@ -110,7 +149,11 @@ export default function CalendarPanel({
       {/* Day name headers */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {dayNames.map((d) => (
-          <div key={d} className="text-center" style={{ fontSize: 10, fontWeight: 700, color: "#c97060" }}>
+          <div
+            key={d}
+            className="text-center"
+            style={{ fontSize: 10, fontWeight: 700, color: "#c97060" }}
+          >
             {d}
           </div>
         ))}
@@ -122,20 +165,25 @@ export default function CalendarPanel({
           <div key={`e-${i}`} />
         ))}
         {Array.from({ length: daysInMonth }).map((_, i) => {
-          const day        = i + 1;
-          const dateStr    = `${monthKey}-${pad(day)}`;
-          const rec        = recordMap[dateStr];
-          const score      = combineScore(rec);
-          const bg         = rec ? scoreBg(score) : "rgba(201,112,96,0.03)";
-          const tc         = scoreText(score);
-          const isToday    = dateStr === todayStr;
+          const day = i + 1;
+          const dateStr = `${monthKey}-${pad(day)}`;
+          const rec = recordMap[dateStr];
+          const score = combineScore(rec);
+          const bg = rec ? scoreBg(score) : "rgba(201,112,96,0.03)";
+          const tc = scoreText(score);
+          const isToday = dateStr === todayStr;
           const isSelected = dateStr === selectedDate;
 
-          const hasPeriod   = show.period   && rec && rec.period >= 2;
-          const hasFlareUp  = show.flareUp  && rec && (rec.intensity >= 4 || rec.bowelMovementPain >= 4 || rec.endoBelly >= 4);
+          const hasPeriod = show.period && rec && rec.period >= 2;
+          const hasFlareUp =
+            show.flareUp &&
+            rec &&
+            (rec.intensity >= 4 ||
+              rec.bowelMovementPain >= 4 ||
+              rec.endoBelly >= 4);
           const hasMedicine = show.medicine && rec?.acuteMedicines?.length > 0;
           const hasActivity = show.activity && rec?.physicalActivity > 0;
-          const hasNote     = show.note     && rec?.note?.trim().length > 0;
+          const hasNote = show.note && rec?.note?.trim().length > 0;
 
           return (
             <div
@@ -147,8 +195,8 @@ export default function CalendarPanel({
                 border: isSelected
                   ? "2px solid #8b4038"
                   : isToday
-                  ? "2px solid #c97060"
-                  : "1.5px solid rgba(201,112,96,0.15)",
+                    ? "2px solid #c97060"
+                    : "1.5px solid rgba(201,112,96,0.15)",
                 cursor: rec ? "pointer" : "default",
                 minHeight: 52,
                 padding: "4px 2px 3px",
@@ -162,11 +210,36 @@ export default function CalendarPanel({
                 {day}
               </span>
               <div className="flex gap-0.5 flex-wrap justify-center px-0.5">
-                {hasPeriod   && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a" }} />}
-                {hasFlareUp  && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#f5a623" }} />}
-                {hasMedicine && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#7b68ee" }} />}
-                {hasActivity && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5cb85c" }} />}
-                {hasNote     && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5bc0de" }} />}
+                {hasPeriod && (
+                  <div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: "#e05a5a" }}
+                  />
+                )}
+                {hasFlareUp && (
+                  <div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: "#f5a623" }}
+                  />
+                )}
+                {hasMedicine && (
+                  <div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: "#7b68ee" }}
+                  />
+                )}
+                {hasActivity && (
+                  <div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: "#5cb85c" }}
+                  />
+                )}
+                {hasNote && (
+                  <div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: "#5bc0de" }}
+                  />
+                )}
               </div>
             </div>
           );
@@ -176,9 +249,15 @@ export default function CalendarPanel({
       {/* Visibility checkboxes */}
       <div
         className="mt-4 rounded-xl px-4 py-3"
-        style={{ background: "rgba(201,112,96,0.03)", border: "1px solid rgba(201,112,96,0.1)" }}
+        style={{
+          background: "rgba(201,112,96,0.03)",
+          border: "1px solid rgba(201,112,96,0.1)",
+        }}
       >
-        <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "#b07a70" }}>
+        <p
+          className="text-xs font-semibold tracking-widest uppercase mb-3"
+          style={{ color: "#b07a70" }}
+        >
           {t.showIn ?? "Show in calendar"}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5">
@@ -198,12 +277,20 @@ export default function CalendarPanel({
               >
                 {show[key] && (
                   <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                    <path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5"
-                      strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M1 3.5L3.5 6L8 1"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 )}
               </div>
-              <span className="text-xs font-medium" style={{ color: show[key] ? "#5a3a34" : "#b07a70" }}>
+              <span
+                className="text-xs font-medium"
+                style={{ color: show[key] ? "#5a3a34" : "#b07a70" }}
+              >
                 {label}
               </span>
             </div>
@@ -220,30 +307,78 @@ export default function CalendarPanel({
           boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
         }}
       >
-        <div className="px-4 pt-3 pb-2" style={{ borderBottom: "1px solid rgba(201,112,96,0.08)" }}>
-          <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#c97060" }}>
+        <div
+          className="px-4 pt-3 pb-2"
+          style={{ borderBottom: "1px solid rgba(201,112,96,0.08)" }}
+        >
+          <p
+            className="text-xs font-semibold tracking-widest uppercase"
+            style={{ color: "#c97060" }}
+          >
             {t.monthlySummary ?? "Monthly summary"}
           </p>
         </div>
 
         {[
-          { color: avgPain ? scoreBg(avgPain) : "#e0c0b8", label: t.avgSymptoms     ?? "Avg. symptoms",  value: avgPain ?? "–"      },
-          { color: "#f5a623",                              label: t.exacerbation     ?? "Flare-ups",      value: counts.flareUps     },
-          { color: "#e05a5a",                              label: t.symptomPeriod    ?? "Period days",    value: counts.periodDays   },
-          { color: "#7b68ee",                              label: t.medication       ?? "Medicine days",  value: counts.medicineDays },
-          { color: "#5cb85c",                              label: t.physicalActivity ?? "Activity days",  value: counts.activityDays },
-          { color: "#c97060",                              label: t.filledDays       ?? "Days filled",    value: counts.filled       },
-        ].map(({ color, label, value }) => (
-          <div
-            key={label}
-            className="flex items-center px-4 py-2.5"
-            style={{ borderBottom: "1px solid rgba(201,112,96,0.06)" }}
-          >
-            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
-            <span className="flex-1 text-sm ml-3" style={{ color: "#7a5a54" }}>{label}</span>
-            <span className="text-sm font-bold" style={{ color: "#8b4038" }}>{value}</span>
-          </div>
-        ))}
+          {
+            color: avgPain ? scoreBg(avgPain) : "#e0c0b8",
+            label: t.avgSymptoms ?? "Avg. symptoms",
+            value: avgPain ?? "–",
+            always: true,
+          },
+          {
+            color: "#f5a623",
+            label: t.exacerbation ?? "Flare-ups",
+            value: counts.flareUps,
+            showKey: "flareUp",
+          },
+          {
+            color: "#e05a5a",
+            label: t.symptomPeriod ?? "Period days",
+            value: counts.periodDays,
+            showKey: "period",
+          },
+          {
+            color: "#7b68ee",
+            label: t.medication ?? "Medicine days",
+            value: counts.medicineDays,
+            showKey: "medicine",
+          },
+          {
+            color: "#5cb85c",
+            label: t.physicalActivity ?? "Activity days",
+            value: counts.activityDays,
+            showKey: "activity",
+          },
+          {
+            color: "#c97060",
+            label: t.filledDays ?? "Days filled",
+            value: counts.filled,
+            always: true,
+          },
+        ]
+          .filter(({ always, showKey }) => always || show[showKey])
+          .map(({ color, label, value }) => (
+            <div
+              key={label}
+              className="flex items-center px-4 py-2.5"
+              style={{ borderBottom: "1px solid rgba(201,112,96,0.06)" }}
+            >
+              <div
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ background: color }}
+              />
+              <span
+                className="flex-1 text-sm ml-3"
+                style={{ color: "#7a5a54" }}
+              >
+                {label}
+              </span>
+              <span className="text-sm font-bold" style={{ color: "#8b4038" }}>
+                {value}
+              </span>
+            </div>
+          ))}
       </div>
     </div>
   );

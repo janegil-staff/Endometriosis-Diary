@@ -31,7 +31,20 @@ export default function DayDetailDrawer({ t, open, onClose, record, medicines, s
     pointerEvents: open ? "auto" : "none",
   });
 
-  const contentProps = { t, record, medicines, onClose, show };
+  // Explicitly list all props including show
+  const contentProps = {
+    t,
+    record,
+    medicines,
+    onClose,
+    show: show ?? {
+      period:   true,
+      flareUp:  true,
+      medicine: true,
+      note:     true,
+      activity: true,
+    },
+  };
 
   return (
     <>
