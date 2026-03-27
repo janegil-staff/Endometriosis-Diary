@@ -1,9 +1,9 @@
 export function scoreColor(score) {
-  if (!score || score <= 1) return { bg: "rgba(201,112,96,0.06)", text: "#b07a70", border: "rgba(201,112,96,0.15)" };
-  if (score <= 2) return { bg: "#f5e8e4", text: "#7a3a2e", border: "#e8b5a8" };
-  if (score <= 3) return { bg: "#e8b5a8", text: "#5a2a20", border: "#d98878" };
-  if (score <= 4) return { bg: "#c97060", text: "#fff",    border: "#a85848" };
-  return               { bg: "#8b4038", text: "#fff",    border: "#6a2828" };
+  if (!score || score <= 1) return { bg: "#d6eef8", text: "#4a8aa8", border: "#a8d8ea" };
+  if (score <= 2) return { bg: "#4CC189", text: "#fff",    border: "#2e9e68" };
+  if (score <= 3) return { bg: "#FFC659", text: "#7a5200", border: "#c99500" };
+  if (score <= 4) return { bg: "#FF7473", text: "#fff",    border: "#cc4040" };
+  return               { bg: "#BE3830", text: "#fff",    border: "#8a2020" };
 }
 
 export function combineScore(r) {
