@@ -25,16 +25,16 @@ export default function Dashboard() {
 
   const [patient, setPatient] = useState(() => parsePatientData().patient);
   const [selectedRecord, setSelectedRecord] = useState(
-    () => parsePatientData().selectedRecord
+    () => parsePatientData().selectedRecord,
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [show, setShow] = useState({
-    period:   true,
-    flareUp:  true,
+    period: true,
+    flareUp: true,
     medicine: true,
-    note:     true,
+    note: true,
     activity: true,
   });
 
@@ -54,11 +54,12 @@ export default function Dashboard() {
 
   const NAV_ITEMS = [
     { label: t.summaryTab ?? "Summary", href: "/summary" },
-    { label: t.logTab     ?? "Log",     href: "/log"     },
+    { label: t.logTab ?? "Log", href: "/log" },
   ];
 
   return (
     <div
+      suppressHydrationWarning
       className="min-h-screen flex flex-col"
       style={{
         backgroundImage: "url('/background-endo.svg')",
@@ -88,7 +89,8 @@ export default function Dashboard() {
               {patient.age} · {t.female ?? "Female"}
             </p>
             <p className="text-xs" style={{ color: "#b07a70" }}>
-              {patient.records?.length ?? 0} {t.registrations ?? "registrations"}
+              {patient.records?.length ?? 0}{" "}
+              {t.registrations ?? "registrations"}
             </p>
           </div>
         </div>
@@ -130,18 +132,40 @@ export default function Dashboard() {
             onClick={() => setMenuOpen((o) => !o)}
             className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-full transition-all"
             style={{
-              background: menuOpen ? "rgba(201,112,96,0.15)" : "rgba(201,112,96,0.08)",
+              background: menuOpen
+                ? "rgba(201,112,96,0.15)"
+                : "rgba(201,112,96,0.08)",
               border: "1px solid rgba(201,112,96,0.25)",
             }}
           >
-            <span className="block w-4 h-0.5 rounded-full transition-all" style={{ background: "#c97060", transform: menuOpen ? "translateY(4px) rotate(45deg)" : "none" }} />
-            <span className="block w-4 h-0.5 rounded-full transition-all" style={{ background: "#c97060", opacity: menuOpen ? 0 : 1 }} />
-            <span className="block w-4 h-0.5 rounded-full transition-all" style={{ background: "#c97060", transform: menuOpen ? "translateY(-8px) rotate(-45deg)" : "none" }} />
+            <span
+              className="block w-4 h-0.5 rounded-full transition-all"
+              style={{
+                background: "#c97060",
+                transform: menuOpen ? "translateY(4px) rotate(45deg)" : "none",
+              }}
+            />
+            <span
+              className="block w-4 h-0.5 rounded-full transition-all"
+              style={{ background: "#c97060", opacity: menuOpen ? 0 : 1 }}
+            />
+            <span
+              className="block w-4 h-0.5 rounded-full transition-all"
+              style={{
+                background: "#c97060",
+                transform: menuOpen
+                  ? "translateY(-8px) rotate(-45deg)"
+                  : "none",
+              }}
+            />
           </button>
 
           {menuOpen && (
             <>
-              <div className="fixed inset-0 z-[199]" onClick={() => setMenuOpen(false)} />
+              <div
+                className="fixed inset-0 z-[199]"
+                onClick={() => setMenuOpen(false)}
+              />
               <div
                 className="absolute right-0 top-11 z-[200] rounded-2xl overflow-hidden flex flex-col"
                 style={{
@@ -155,7 +179,10 @@ export default function Dashboard() {
                 {[
                   ...NAV_ITEMS.map(({ label, href }) => ({
                     label,
-                    action: () => { setMenuOpen(false); router.push(href); },
+                    action: () => {
+                      setMenuOpen(false);
+                      router.push(href);
+                    },
                     danger: false,
                   })),
                   {
@@ -201,7 +228,10 @@ export default function Dashboard() {
         >
           <h1
             className="text-center text-xl font-bold mb-4"
-            style={{ color: "#c97060", fontFamily: "'Playfair Display', Georgia, serif" }}
+            style={{
+              color: "#c97060",
+              fontFamily: "'Playfair Display', Georgia, serif",
+            }}
           >
             {t.title ?? "Endometriosis Diary"}
           </h1>
