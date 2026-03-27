@@ -5,6 +5,7 @@ import { useLang } from "@/context/LangContext";
 import { translations } from "@/lib/translations";
 import { filterRecords } from "@/lib/log/logHelpers";
 import { LogHeader } from "@/components/log/LogHeader";
+import PdfExportModal from "@/components/PdfExportModal";
 import { LogSearch } from "@/components/log/LogSearch";
 import { RecordList } from "@/components/log/RecordList";
 
@@ -21,6 +22,7 @@ export default function LogPage() {
     query: "",
     visibleCount: PAGE_SIZE,
   });
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const sentinelRef = useRef(null);
 
   const search = searchState.query;
@@ -85,7 +87,7 @@ export default function LogPage() {
         t={t}
         filteredCount={filtered.length}
         onBack={() => router.push("/dashboard")}
-        onPdfOpen={() => {}}
+        onPdfOpen={() => setPdfModalOpen(true)}
       />
 
       <LogSearch t={t} search={search} onSearch={setSearch} />
@@ -103,6 +105,12 @@ export default function LogPage() {
           PAGE_SIZE={PAGE_SIZE}
         />
       </main>
+      <PdfExportModal
+        open={pdfModalOpen}
+        onClose={() => setPdfModalOpen(false)}
+        patient={patient}
+        t={t}
+      />
     </div>
   );
 }
