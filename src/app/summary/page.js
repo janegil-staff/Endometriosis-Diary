@@ -7,15 +7,13 @@ import { parseInitialState } from "@/lib/summary/dateHelpers";
 import {
   buildPainTrend,
   buildFlareData,
-  buildActivityData,
   buildPeriodData,
+  buildActivityData,
   buildSleepData,
   buildMedUsage,
-  buildPainStats,
 } from "@/lib/summary/summaryStats";
 import { SummaryHeader } from "@/components/summary/SummaryHeader";
 import {
-  PainOverviewCard,
   PainTrendCard,
   FlareUpCard,
   PeriodCard,
@@ -30,19 +28,12 @@ export default function SummaryPage() {
   const { lang } = useLang();
   const t = translations[lang] ?? translations.en;
 
-  const [state, setState] = useState({
-    patient: null,
-    viewYear: null,
-    viewMonth: null,
-  });
+  const [state, setState] = useState({ patient: null, viewYear: null, viewMonth: null });
   const { patient, viewYear, viewMonth } = state;
 
   useEffect(() => {
     const parsed = parseInitialState();
-    if (!parsed.patient) {
-      router.replace("/");
-      return;
-    }
+    if (!parsed.patient) { router.replace("/"); return; }
     startTransition(() => setState(parsed));
   }, [router]);
 
@@ -52,26 +43,15 @@ export default function SummaryPage() {
     a.date.localeCompare(b.date),
   );
 
-  const pad = (n) => String(n).padStart(2, "0");
-  const vy = viewYear ?? new Date().getFullYear();
-  const vm = viewMonth ?? new Date().getMonth();
+  const pad      = (n) => String(n).padStart(2, "0");
+  const vy       = viewYear  ?? new Date().getFullYear();
+  const vm       = viewMonth ?? new Date().getMonth();
   const monthKey = `${vy}-${pad(vm + 1)}`;
-
-  const records = allRecords.filter((r) => r.date.startsWith(monthKey));
+  const records  = allRecords.filter((r) => r.date.startsWith(monthKey));
 
   const months = t.monthNames ?? [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
   ];
 
   const prevMonth = () =>
@@ -90,25 +70,12 @@ export default function SummaryPage() {
   const hasPrev = allRecords.some((r) => r.date < monthKey);
   const hasNext = allRecords.some((r) => r.date > monthKey + "-31");
 
-  // Build data
-  const painTrend = buildPainTrend(records, t);
-  const flareData = buildFlareData(records, t);
+  const painTrend    = buildPainTrend(records, t);
+  const flareData    = buildFlareData(records, t);
+  const periodData   = buildPeriodData(records);
   const activityData = buildActivityData(records, t);
-  const periodData = buildPeriodData(records);
-  const sleepData = buildSleepData(records);
-  const medList = buildMedUsage(records, patient);
-  const {
-    avgPain,
-    minPain,
-    maxPain,
-    flareUps,
-    periodDays,
-    light,
-    medium,
-    heavy,
-    extreme,
-    medicineDays,
-  } = buildPainStats(records);
+  const sleepData    = buildSleepData(records);
+  const medList      = buildMedUsage(records, patient);
 
   return (
     <div
@@ -136,59 +103,21 @@ export default function SummaryPage() {
       <main className="flex-1 px-4 sm:px-6 py-6 max-w-4xl mx-auto w-full pb-16">
         <div
           className="grid gap-4"
-          style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          }}
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
         >
-          <PainOverviewCard
-            t={t}
-            avgPain={avgPain}
-            minPain={minPain}
-            maxPain={maxPain}
-            flareUps={flareUps}
-            periodDays={periodDays}
-            recordsCount={records.length}
-            light={light}
-            medium={medium}
-            heavy={heavy}
-            extreme={extreme}
-            medicineDays={medicineDays}
-          />
-
-          <PainTrendCard
-            t={t}
-            painTrend={painTrend}
-            months={months}
-            vm={vm}
-            vy={vy}
-          />
-
           {records.length === 0 && (
             <Card title={t.summaryTab ?? "Summary"}>
-              <p
-                className="text-sm text-center py-4"
-                style={{ color: "#b07a70" }}
-              >
+              <p className="text-sm text-center py-4" style={{ color: "#b07a70" }}>
                 {t.noEntries ?? "No entries this month."}
               </p>
             </Card>
           )}
 
-          <FlareUpCard
-            t={t}
-            flareData={flareData}
-            months={months}
-            vm={vm}
-            vy={vy}
-          />
+          <PainTrendCard t={t} painTrend={painTrend} months={months} vm={vm} vy={vy} />
 
-          <PeriodCard
-            t={t}
-            periodData={periodData}
-            months={months}
-            vm={vm}
-            vy={vy}
-          />
+          <FlareUpCard t={t} flareData={flareData} months={months} vm={vm} vy={vy} />
+
+          <PeriodCard t={t} periodData={periodData} months={months} vm={vm} vy={vy} />
 
           <ActivityCard t={t} activityData={activityData} />
 
