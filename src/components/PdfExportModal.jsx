@@ -17,12 +17,13 @@ const SYMPTOM_FIELDS_PDF = [
 
 function formatActivity(mins, t) {
   if (!mins || mins <= 0) return "";
-  const h   = Math.floor(mins / 60);
-  const m   = mins % 60;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
   const hLabel = h === 1 ? (t.hourSingular ?? "hour") : (t.hours ?? "hours");
-  if (h > 0 && m > 0) return `${h} ${hLabel} ${m} min`;
+  const mLabel = t.minutes ?? "minutes";
+  if (h > 0 && m > 0) return `${h} ${hLabel} ${m} ${mLabel}`;
   if (h > 0)           return `${h} ${hLabel}`;
-  return `${m} ${t.minutes ?? "minutes"}`;
+  return `${m} ${mLabel}`;
 }
 
 function Toggle({ checked, onChange, label, color = "#c97060" }) {
@@ -175,30 +176,27 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
 
       // ── Page 1 header ──────────────────────────────────────
       drawFrame();
-
       setFont(18, "bold", ink);
       doc.text((t.reportTitle ?? t.symptomLog ?? "Symptom Report").toUpperCase(), ML, 26);
-
       setFont(7, "normal", light);
       doc.text(t.reportDate ?? "Date", W - MR, 20, { align: "right" });
       setFont(8, "bold", ink);
       doc.text(new Date().toLocaleDateString(), W - MR, 25, { align: "right" });
       setFont(7, "normal", mid);
       doc.text(`${patient.age} · ${t.female ?? "Female"}`, W - MR, 30, { align: "right" });
-
       if (fromDate || toDate) {
         setFont(7, "normal", light);
         doc.text(`${fromDate ?? "–"}  →  ${toDate ?? "–"}`, ML, 30);
       }
-
       doc.setLineWidth(0.25);
       doc.setDrawColor(201, 112, 96);
       doc.line(ML, 33.5, W - MR, 33.5);
       y = 39;
 
       // ── Summary stats ───────────────────────────────────────
-      const scores     = filtered.map(combineScore).filter((v) => v > 1);
-      const avgPain    = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+      const scores     = filtered.map(combineScore);
+      const painScores = scores.filter((v) => v > 1);
+      const avgPain    = painScores.length ? Math.round(painScores.reduce((a, b) => a + b, 0) / painScores.length) : null;
       const flareCount = filtered.filter((r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4).length;
       const periodDays = filtered.filter((r) => r.period >= 2).length;
       const medDays    = filtered.filter((r) => r.acuteMedicines?.length > 0).length;
@@ -233,9 +231,9 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
       let colX = ML;
       const COL = { date: { x: colX, w: 28 } };
       colX += 29;
-      if (fields.painScore) { COL.pain = { x: colX, w: 22 };                         colX += 23; }
-      if (showSymptoms)     { COL.syms = { x: colX, w: showMeds ? 44 : 64 };         colX += COL.syms.w + 1; }
-      if (showMeds)         { COL.meds = { x: colX, w: showMisc ? 28 : 40 };         colX += COL.meds.w + 1; }
+      if (fields.painScore) { COL.pain = { x: colX, w: 22 };                 colX += 23; }
+      if (showSymptoms)     { COL.syms = { x: colX, w: showMeds ? 44 : 64 }; colX += COL.syms.w + 1; }
+      if (showMeds)         { COL.meds = { x: colX, w: showMisc ? 28 : 40 }; colX += COL.meds.w + 1; }
       if (showMisc)         { COL.misc = { x: colX, w: W - MR - colX }; }
 
       // ── Table header ────────────────────────────────────────
@@ -255,7 +253,6 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         );
         doc.setFontSize(6.5);
       }
-
       Object.entries(COL).filter(([k]) => k !== "date").forEach(([, c]) => vline(c.x, y, y + thH, 0.15));
       y += thH;
 
@@ -282,13 +279,23 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
           y += 8;
         }
 
-        const score      = combineScore(r);
+        const score = combineScore(r);
+
+        // Score label including 1 = none
         const scoreLabel =
-          score <= 1 ? "–"
+          score <= 1 ? (t.noPain     ?? "No pain")
           : score <= 2 ? (t.mild     ?? "Light")
           : score <= 3 ? (t.moderate ?? "Medium")
           : score <= 4 ? (t.serious  ?? "Heavy")
           :               (t.veryHigh ?? "Extreme");
+
+        // Score colour matching calendar exactly
+        const scoreRgb =
+          score <= 1 ? [214, 238, 248]
+          : score <= 2 ? [76, 193, 137]
+          : score <= 3 ? [255, 198, 89]
+          : score <= 4 ? [255, 116, 115]
+          : [190, 56, 48];
 
         const usedMeds = (r.acuteMedicines ?? []).map((id, i) => {
           const med  = patient.medicines?.find((m) => m.id === id);
@@ -315,7 +322,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         });
 
         const symRows      = Math.min(visibleSymptoms.length, 5);
-        const subContentH  = showSymptoms ? symRows * LINE_H : 0;
+        const subContentH  = showSymptoms ? Math.max(symRows * LINE_H, LINE_H) : 0;
         const medContentH  = medSplit.length > 0 ? medSplit.length * LINE_H : 0;
         const bodyContentH = Math.max(subContentH, medContentH, LINE_H * 2);
         const bodyH        = PAD_TOP + bodyContentH + PAD_BOT;
@@ -327,29 +334,30 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
 
         checkY(rowH + 1);
 
-        // Row background
-        if (idx % 2 === 0) { doc.setFillColor(...shade); doc.rect(ML, y, CW, rowH, "F"); }
+        // Row background — all rows faintly tinted, score 1 = light blue
+        const blendFactor = score <= 1 ? 0.75 : 0.85;
+        doc.setFillColor(
+          Math.min(255, scoreRgb[0] + (255 - scoreRgb[0]) * blendFactor),
+          Math.min(255, scoreRgb[1] + (255 - scoreRgb[1]) * blendFactor),
+          Math.min(255, scoreRgb[2] + (255 - scoreRgb[2]) * blendFactor),
+        );
+        doc.rect(ML, y, CW, rowH, "F");
         doc.setLineWidth(0.1);
         doc.setDrawColor(220, 200, 195);
         doc.rect(ML, y, CW, rowH, "S");
 
-        Object.entries(COL)
-          .filter(([k]) => k !== "date")
-          .forEach(([, c]) => vline(c.x, y, y + bodyH + exH));
+        Object.entries(COL).filter(([k]) => k !== "date").forEach(([, c]) => vline(c.x, y, y + bodyH + exH));
 
         if (isFlareUp) {
           doc.setFillColor(255, 250, 245);
           doc.rect(ML, y + bodyH, CW, exH, "F");
-          doc.setLineWidth(0.08);
-          doc.setDrawColor(220, 190, 180);
+          doc.setLineWidth(0.08); doc.setDrawColor(220, 190, 180);
           doc.line(ML + 1, y + bodyH, W - MR - 1, y + bodyH);
         }
-
         if (noteSplit.length > 0) {
           doc.setFillColor(251, 250, 255);
           doc.rect(ML, y + bodyH + exH, CW, noteH, "F");
-          doc.setLineWidth(0.08);
-          doc.setDrawColor(215, 210, 230);
+          doc.setLineWidth(0.08); doc.setDrawColor(215, 210, 230);
           doc.line(ML + 1, y + bodyH + exH, W - MR - 1, y + bodyH + exH);
         }
 
@@ -364,8 +372,8 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         setFont(6.5, "bold", ink);
         doc.text(fmt, COL.date.x + PAD_SIDE, ty + LINE_H * 0.95);
 
-        // ── Pain score cell ─────────────────────────────────────
-        if (COL.pain && score > 1) {
+        // ── Pain score cell — always shown ─────────────────────
+        if (COL.pain) {
           setFont(13, "bold", ink);
           doc.text(String(score), COL.pain.x + COL.pain.w / 2, ty + 2, { align: "center" });
           setFont(5.5, "normal", light);
@@ -373,7 +381,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         }
 
         // ── Symptom pairs ───────────────────────────────────────
-        if (COL.syms && showSymptoms) {
+        if (COL.syms && showSymptoms && visibleSymptoms.length > 0) {
           const pairW = (COL.syms.w - PAD_SIDE * 3) / 2;
           visibleSymptoms.slice(0, 10).forEach(({ key, labelKey, fallback }, i) => {
             const col = i % 2;
@@ -406,16 +414,15 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
           setFont(7, "normal", ink);
           let sy = ty;
           if (fields.activity && r.physicalActivity > 0) {
-            const actText = formatActivity(r.physicalActivity, t);
-            doc.text(actText, COL.misc.x + PAD_SIDE, sy);
+            doc.text(formatActivity(r.physicalActivity, t), COL.misc.x + PAD_SIDE, sy);
             sy += LINE_H;
           }
           if (fields.sleep && r.sleepHours > 0) {
-            const h       = r.sleepHours;
-            const sleepTxt = h === 1
-              ? `1 ${t.hourSingular ?? "hour"}`
-              : `${h} ${t.hours ?? "hours"}`;
-            doc.text(sleepTxt, COL.misc.x + PAD_SIDE, sy);
+            const h = r.sleepHours;
+            doc.text(
+              h === 1 ? `1 ${t.hourSingular ?? "hour"}` : `${h} ${t.hours ?? "hours"}`,
+              COL.misc.x + PAD_SIDE, sy,
+            );
           }
         }
 
@@ -476,14 +483,11 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 z-[400]"
         style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}
         onClick={onClose}
       />
-
-      {/* Modal */}
       <div
         className="fixed top-1/2 left-1/2 z-[401] rounded-2xl shadow-2xl overflow-hidden"
         style={{

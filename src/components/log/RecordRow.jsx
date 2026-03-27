@@ -24,7 +24,7 @@ const SYMPTOM_FIELDS = [
 
 const BAR_COLOR = (v) =>
   v <= 1
-    ? "#4a8aa8"
+    ? "#d6eef8"
     : v <= 2
       ? "#4CC189"
       : v <= 3
@@ -190,18 +190,16 @@ export function RecordRow({
               🏃 {actLabel}
             </span>
           )}
-          {score > 1 && (
-            <span
-              className="text-xs font-bold px-2.5 py-0.5 rounded-full"
-              style={{
-                background: c.bg,
-                color: c.text,
-                border: `1px solid ${c.border}`,
-              }}
-            >
-              {t.painScore ?? "Pain"} {score}
-            </span>
-          )}
+          <span
+            className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+            style={{
+              background: c.bg,
+              color: c.text,
+              border: `1px solid ${c.border}`,
+            }}
+          >
+            {t.painScore ?? "Pain"} {score}
+          </span>
           <span
             className="transition-transform text-xs"
             style={{
