@@ -97,8 +97,18 @@ export default function SummaryPage() {
   const periodData = buildPeriodData(records);
   const sleepData = buildSleepData(records);
   const medList = buildMedUsage(records, patient);
-  const { avgPain, minPain, maxPain, flareUps, periodDays } =
-    buildPainStats(records);
+  const {
+    avgPain,
+    minPain,
+    maxPain,
+    flareUps,
+    periodDays,
+    light,
+    medium,
+    heavy,
+    extreme,
+    medicineDays,
+  } = buildPainStats(records);
 
   return (
     <div
@@ -138,6 +148,11 @@ export default function SummaryPage() {
             flareUps={flareUps}
             periodDays={periodDays}
             recordsCount={records.length}
+            light={light}
+            medium={medium}
+            heavy={heavy}
+            extreme={extreme}
+            medicineDays={medicineDays}
           />
 
           <PainTrendCard

@@ -1,28 +1,23 @@
-// Combine symptom fields into a score 1-5
 export function combineScore(r) {
   if (!r) return 0;
-  const fields = [
-    r.intensity, r.endoBelly, r.bowelMovementPain,
-    r.urinationPain, r.fatigue, r.stress, r.sexualPain,
-  ];
-  const vals = fields.filter((v) => v > 1);
-  if (!vals.length) return 1;
-  return Math.min(5, Math.round(vals.reduce((a, b) => a + b, 0) / vals.length));
+  return r.intensity ?? 1;
 }
 
 // Pain trend per day
 export const buildPainTrend = (records, t) =>
   records
     .map((r) => ({
-      label: r.date.slice(8), // day number
+      label: r.date.slice(8),
       value: combineScore(r),
     }))
     .filter((d) => d.value > 1);
 
-// Flare-up days per day
+// Flare-up days
 export const buildFlareData = (records, t) =>
   records
-    .filter((r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4)
+    .filter(
+      (r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4,
+    )
     .map((r) => ({
       label: r.date.slice(8),
       value: combineScore(r),
@@ -70,14 +65,23 @@ export const buildSleepData = (records) =>
       value: r.sleepHours,
     }));
 
-// Overview stats
+// Overview stats — same breakdown as dashboard monthly summary
 export const buildPainStats = (records) => {
   const scores = records.map(combineScore).filter((v) => v > 1);
   return {
-    avgPain:  scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
-    minPain:  scores.length ? Math.min(...scores) : null,
-    maxPain:  scores.length ? Math.max(...scores) : null,
-    flareUps: records.filter((r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4).length,
+    avgPain: scores.length
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : null,
+    minPain: scores.length ? Math.min(...scores) : null,
+    maxPain: scores.length ? Math.max(...scores) : null,
+    flareUps: records.filter(
+      (r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4,
+    ).length,
     periodDays: records.filter((r) => r.period >= 2).length,
+    light: records.filter((r) => combineScore(r) === 2).length,
+    medium: records.filter((r) => combineScore(r) === 3).length,
+    heavy: records.filter((r) => combineScore(r) === 4).length,
+    extreme: records.filter((r) => combineScore(r) === 5).length,
+    medicineDays: records.filter((r) => r.acuteMedicines?.length > 0).length,
   };
 };
