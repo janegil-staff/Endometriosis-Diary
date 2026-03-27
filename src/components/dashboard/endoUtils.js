@@ -5,16 +5,9 @@ export function scoreColor(score) {
   if (score <= 4) return { bg: "#FF7473", text: "#fff",    border: "#cc4040" };
   return               { bg: "#BE3830", text: "#fff",    border: "#8a2020" };
 }
-
 export function combineScore(r) {
   if (!r) return 0;
-  const fields = [
-    r.intensity, r.endoBelly, r.bowelMovementPain,
-    r.urinationPain, r.fatigue, r.stress, r.sexualPain,
-  ];
-  const vals = fields.filter((v) => v > 1);
-  if (!vals.length) return 1;
-  return Math.min(5, Math.round(vals.reduce((a, b) => a + b, 0) / vals.length));
+  return r.intensity ?? 1;
 }
 
 export function resolveMedicines(record, medicines) {
