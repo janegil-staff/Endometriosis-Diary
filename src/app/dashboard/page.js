@@ -1,40 +1,31 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/context/LangContext";
 import CalendarPanel from "@/components/dashboard/CalendarPanel";
 import DayDetailDrawer from "@/components/dashboard/DayDetailDrawer";
 import { translations } from "@/lib/translations";
 
-function parsePatientData() {
-  if (typeof window === "undefined")
-    return { patient: null, selectedRecord: null };
-  const raw = sessionStorage.getItem("patientData");
-  if (!raw) return { patient: null, selectedRecord: null };
-  const data = JSON.parse(raw);
-  const selectedRecord = data.records?.length
-    ? data.records[data.records.length - 1]
-    : null;
-  return { patient: data, selectedRecord };
-}
-
 export default function Dashboard() {
-  const router = useRouter();
+  const router   = useRouter();
   const { lang } = useLang();
-  const t = translations[lang] ?? translations.en;
+  const t        = translations[lang] ?? translations.en;
 
-  const [patient, setPatient] = useState(() => parsePatientData().patient);
-  const [selectedRecord, setSelectedRecord] = useState(
-    () => parsePatientData().selectedRecord,
-  );
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted,        setMounted]        = useState(false);
+  const [patient,        setPatient]        = useState(null);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [drawerOpen,     setDrawerOpen]     = useState(false);
+  const [menuOpen,       setMenuOpen]       = useState(false);
+
+  // Lifted view state — survives checkbox toggles
+  const [viewYear,  setViewYear]  = useState(null);
+  const [viewMonth, setViewMonth] = useState(null);
 
   const [show, setShow] = useState({
-    period: true,
-    flareUp: true,
+    period:   true,
+    flareUp:  true,
     medicine: true,
-    note: true,
+    note:     true,
     activity: true,
   });
 
@@ -42,24 +33,35 @@ export default function Dashboard() {
     setShow((prev) => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
-    if (!patient) router.replace("/");
-  }, [patient, router]);
+    const raw = sessionStorage.getItem("patientData");
+    if (!raw) { router.replace("/"); return; }
+    const data = JSON.parse(raw);
+    startTransition(() => {
+      setPatient(data);
+      if (data.records?.length) {
+        const last = [...data.records].sort((a, b) => a.date.localeCompare(b.date)).pop();
+        setSelectedRecord(last);
+        setViewYear(parseInt(last.date.slice(0, 4)));
+        setViewMonth(parseInt(last.date.slice(5, 7)) - 1);
+      }
+      setMounted(true);
+    });
+  }, [router]);
 
   const handleDayClick = (record) => {
     setSelectedRecord(record);
     setDrawerOpen(true);
   };
 
-  if (!patient) return null;
+  if (!mounted || !patient) return null;
 
   const NAV_ITEMS = [
     { label: t.summaryTab ?? "Summary", href: "/summary" },
-    { label: t.logTab ?? "Log", href: "/log" },
+    { label: t.logTab     ?? "Log",     href: "/log"     },
   ];
 
   return (
     <div
-      suppressHydrationWarning
       className="min-h-screen flex flex-col"
       style={{
         backgroundImage: "url('/background-endo.svg')",
@@ -89,12 +91,12 @@ export default function Dashboard() {
               {patient.age} · {t.female ?? "Female"}
             </p>
             <p className="text-xs" style={{ color: "#b07a70" }}>
-              {patient.records?.length ?? 0}{" "}
-              {t.registrations ?? "registrations"}
+              {patient.records?.length ?? 0} {t.registrations ?? "registrations"}
             </p>
           </div>
         </div>
 
+        {/* Desktop nav */}
         <div className="hidden sm:flex items-center gap-2">
           {NAV_ITEMS.map(({ label, href }) => (
             <button
@@ -127,45 +129,24 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {/* Mobile hamburger */}
         <div className="relative sm:hidden">
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-full transition-all"
             style={{
-              background: menuOpen
-                ? "rgba(201,112,96,0.15)"
-                : "rgba(201,112,96,0.08)",
+              background: menuOpen ? "rgba(201,112,96,0.15)" : "rgba(201,112,96,0.08)",
               border: "1px solid rgba(201,112,96,0.25)",
             }}
           >
-            <span
-              className="block w-4 h-0.5 rounded-full transition-all"
-              style={{
-                background: "#c97060",
-                transform: menuOpen ? "translateY(4px) rotate(45deg)" : "none",
-              }}
-            />
-            <span
-              className="block w-4 h-0.5 rounded-full transition-all"
-              style={{ background: "#c97060", opacity: menuOpen ? 0 : 1 }}
-            />
-            <span
-              className="block w-4 h-0.5 rounded-full transition-all"
-              style={{
-                background: "#c97060",
-                transform: menuOpen
-                  ? "translateY(-8px) rotate(-45deg)"
-                  : "none",
-              }}
-            />
+            <span className="block w-4 h-0.5 rounded-full transition-all" style={{ background: "#c97060", transform: menuOpen ? "translateY(4px) rotate(45deg)" : "none" }} />
+            <span className="block w-4 h-0.5 rounded-full transition-all" style={{ background: "#c97060", opacity: menuOpen ? 0 : 1 }} />
+            <span className="block w-4 h-0.5 rounded-full transition-all" style={{ background: "#c97060", transform: menuOpen ? "translateY(-8px) rotate(-45deg)" : "none" }} />
           </button>
 
           {menuOpen && (
             <>
-              <div
-                className="fixed inset-0 z-[199]"
-                onClick={() => setMenuOpen(false)}
-              />
+              <div className="fixed inset-0 z-[199]" onClick={() => setMenuOpen(false)} />
               <div
                 className="absolute right-0 top-11 z-[200] rounded-2xl overflow-hidden flex flex-col"
                 style={{
@@ -179,10 +160,7 @@ export default function Dashboard() {
                 {[
                   ...NAV_ITEMS.map(({ label, href }) => ({
                     label,
-                    action: () => {
-                      setMenuOpen(false);
-                      router.push(href);
-                    },
+                    action: () => { setMenuOpen(false); router.push(href); },
                     danger: false,
                   })),
                   {
@@ -228,17 +206,12 @@ export default function Dashboard() {
         >
           <h1
             className="text-center text-xl font-bold mb-4"
-            style={{
-              color: "#c97060",
-              fontFamily: "'Playfair Display', Georgia, serif",
-            }}
+            style={{ color: "#c97060", fontFamily: "'Playfair Display', Georgia, serif" }}
           >
             {t.title ?? "Endometriosis Diary"}
           </h1>
 
-          {/* key={JSON.stringify(show)} forces full remount on every toggle */}
           <CalendarPanel
-            key={JSON.stringify(show)}
             t={t}
             records={patient.records}
             medicines={patient.medicines}
@@ -246,6 +219,9 @@ export default function Dashboard() {
             selectedDate={selectedRecord?.date}
             show={show}
             onToggleShow={toggleShow}
+            viewYear={viewYear}
+            viewMonth={viewMonth}
+            onViewChange={(y, m) => { setViewYear(y); setViewMonth(m); }}
           />
         </div>
       </main>
