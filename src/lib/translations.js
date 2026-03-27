@@ -147,7 +147,7 @@ export const translations = {
       partial: "Partial",
       full: "Full",
       preventedByPainLevel: "Prevented by pain level",
-      noPain: "No pain",
+      noPain: "None",
   },
   no: {
     title: "Endometriose Dagbok",
@@ -297,7 +297,7 @@ export const translations = {
       partial: "Delvis",
       full: "Fullstendig",
       preventedByPainLevel: "Hindret per smertenivå",
-      noPain: "Ingen smerte",
+      noPain: "Ingen",
   },
   nl: {
     title: "Endometriose Dagboek",
@@ -449,7 +449,7 @@ export const translations = {
       partial: "Gedeeltelijk",
       full: "Volledig",
       preventedByPainLevel: "Verhinderd per pijnniveau",
-      noPain: "Geen pijn",
+      noPain: "Geen",
   },
   fr: {
     title: "Journal de l'Endométriose",
@@ -601,7 +601,7 @@ export const translations = {
       partial: "Partiel",
       full: "Total",
       preventedByPainLevel: "Empêché par niveau de douleur",
-      noPain: "Sans douleur",
+      noPain: "Aucun",
   },
   de: {
     title: "Endometriose-Tagebuch",
@@ -753,7 +753,7 @@ export const translations = {
       partial: "Teilweise",
       full: "Vollständig",
       preventedByPainLevel: "Verhindert nach Schmerzniveau",
-      noPain: "Kein Schmerz",
+      noPain: "Keine",
   },
   it: {
     title: "Diario dell'Endometriosi",
@@ -905,7 +905,7 @@ export const translations = {
       partial: "Parziale",
       full: "Totale",
       preventedByPainLevel: "Impedito per livello di dolore",
-      noPain: "Nessun dolore",
+      noPain: "Nessuno",
   },
   sv: {
     title: "Endometrios Dagbok",
@@ -1057,7 +1057,7 @@ export const translations = {
       partial: "Delvis",
       full: "Fullständigt",
       preventedByPainLevel: "Förhindrat per smärtnivå",
-      noPain: "Ingen smärta",
+      noPain: "Ingen",
   },
   da: {
     title: "Endometriose Dagbog",
@@ -1209,7 +1209,7 @@ export const translations = {
       partial: "Delvis",
       full: "Fuldstændig",
       preventedByPainLevel: "Forhindret per smerteniveau",
-      noPain: "Ingen smerte",
+      noPain: "Ingen",
   },
   fi: {
     title: "Endometrioosi Päiväkirja",
@@ -1361,7 +1361,7 @@ export const translations = {
       partial: "Osittainen",
       full: "Täydellinen",
       preventedByPainLevel: "Estetty kipuasteen mukaan",
-      noPain: "Ei kipua",
+      noPain: "Ei",
   },
   es: {
     title: "Diario de Endometriosis",
@@ -1513,7 +1513,7 @@ export const translations = {
       partial: "Parcial",
       full: "Total",
       preventedByPainLevel: "Impedido por nivel de dolor",
-      noPain: "Sin dolor",
+      noPain: "Ninguno",
   },
   pl: {
     title: "Dziennik Endometriozy",
@@ -1665,7 +1665,7 @@ export const translations = {
       partial: "Częściowy",
       full: "Całkowity",
       preventedByPainLevel: "Utrudnione wg poziomu bólu",
-      noPain: "Bez bólu",
+      noPain: "Brak",
   },
   pt: {
     title: "Diário de Endometriose",
@@ -1817,6 +1817,6 @@ export const translations = {
       partial: "Parcial",
       full: "Total",
       preventedByPainLevel: "Impedido por nível de dor",
-      noPain: "Sem dor",
+      noPain: "Nenhum",
   },
 };
