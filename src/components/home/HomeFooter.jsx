@@ -4,8 +4,8 @@ import LanguageFlags from "./LanguageFlags";
 export default function HomeFooter({ t, lang, setLang }) {
   return (
     <footer className="relative z-10 text-center pb-9 px-4">
-      <p className="text-gray-500 text-sm mb-1">{t.available}</p>
-      <p className="text-gray-500 text-sm mb-5">{t.download}</p>
+      <p className="text-gray-700 text-sm mb-1">{t.available}</p>
+      <p className="text-gray-700 text-sm mb-5">{t.download}</p>
 
       <StoreButtons />
       <LanguageFlags lang={lang} setLang={setLang} />
