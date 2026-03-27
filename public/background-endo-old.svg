@@ -1,0 +1,94 @@
+<svg width="100%" height="100%" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5e8e4"/>
+      <stop offset="50%" stop-color="#e8cfc8"/>
+      <stop offset="100%" stop-color="#d4b0a8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <!-- Large corner blobs - bottom left -->
+  <ellipse cx="0" cy="1080" rx="700" ry="620" fill="#c97060" opacity="0.6"/>
+  <ellipse cx="-80" cy="1080" rx="500" ry="440" fill="#a85848" opacity="0.5"/>
+  <ellipse cx="220" cy="900" rx="340" ry="300" fill="#d98878" opacity="0.35"/>
+
+  <!-- Large corner blobs - top right -->
+  <ellipse cx="1920" cy="0" rx="680" ry="580" fill="#c97060" opacity="0.55"/>
+  <ellipse cx="1980" cy="-40" rx="460" ry="380" fill="#8b4038" opacity="0.45"/>
+  <ellipse cx="1680" cy="220" rx="300" ry="260" fill="#d98878" opacity="0.3"/>
+
+  <!-- Top and bottom center blobs -->
+  <ellipse cx="960" cy="-120" rx="800" ry="420" fill="#c97060" opacity="0.22"/>
+  <ellipse cx="960" cy="1200" rx="740" ry="400" fill="#a85848" opacity="0.2"/>
+
+  <!-- Mid-field accent blobs -->
+  <ellipse cx="1400" cy="680" rx="380" ry="340" fill="#c97060" opacity="0.2"/>
+  <ellipse cx="480" cy="360" rx="300" ry="260" fill="#d98878" opacity="0.18"/>
+  <ellipse cx="1100" cy="400" rx="240" ry="200" fill="#a85848" opacity="0.14"/>
+
+  <!-- Wave paths bottom -->
+  <path d="M0,720 Q240,620 440,700 Q640,780 800,680 Q960,580 1140,660 Q1320,740 1540,640 Q1720,540 1920,620 L1920,1080 L0,1080 Z" fill="#a85848" opacity="0.2"/>
+  <path d="M0,800 Q280,700 520,770 Q760,840 960,740 Q1160,640 1380,720 Q1600,800 1920,700 L1920,1080 L0,1080 Z" fill="#8b4038" opacity="0.15"/>
+
+  <!-- Top wave -->
+  <path d="M0,0 Q280,100 480,30 Q680,-40 880,80 Q1080,200 1280,100 Q1480,0 1920,120 L1920,0 Z" fill="#c97060" opacity="0.25"/>
+
+  <!-- Dot clusters - centre left -->
+  <circle cx="640" cy="520" r="10" fill="#c97060" opacity="0.28"/>
+  <circle cx="700" cy="468" r="7" fill="#c97060" opacity="0.22"/>
+  <circle cx="760" cy="545" r="9" fill="#a85848" opacity="0.25"/>
+  <circle cx="670" cy="575" r="5" fill="#d98878" opacity="0.2"/>
+  <circle cx="590" cy="495" r="7" fill="#c97060" opacity="0.22"/>
+  <circle cx="810" cy="510" r="5" fill="#8b4038" opacity="0.18"/>
+
+  <!-- Dot clusters - centre right -->
+  <circle cx="1200" cy="350" r="9" fill="#c97060" opacity="0.25"/>
+  <circle cx="1260" cy="298" r="5" fill="#a85848" opacity="0.2"/>
+  <circle cx="1160" cy="400" r="7" fill="#d98878" opacity="0.22"/>
+  <circle cx="1300" cy="370" r="10" fill="#c97060" opacity="0.18"/>
+  <circle cx="1240" cy="440" r="5" fill="#8b4038" opacity="0.2"/>
+
+  <!-- Grid lines cluster 1 -->
+  <line x1="560" y1="230" x2="560" y2="400" stroke="#c97060" stroke-width="2" opacity="0.13"/>
+  <line x1="590" y1="215" x2="590" y2="385" stroke="#c97060" stroke-width="2" opacity="0.11"/>
+  <line x1="620" y1="240" x2="620" y2="410" stroke="#a85848" stroke-width="2" opacity="0.13"/>
+  <line x1="650" y1="220" x2="650" y2="390" stroke="#c97060" stroke-width="2" opacity="0.11"/>
+  <line x1="680" y1="235" x2="680" y2="405" stroke="#d98878" stroke-width="2" opacity="0.11"/>
+  <line x1="545" y1="250" x2="700" y2="250" stroke="#c97060" stroke-width="1.5" opacity="0.09"/>
+  <line x1="545" y1="278" x2="700" y2="278" stroke="#a85848" stroke-width="1.5" opacity="0.09"/>
+  <line x1="545" y1="306" x2="700" y2="306" stroke="#c97060" stroke-width="1.5" opacity="0.09"/>
+  <line x1="545" y1="334" x2="700" y2="334" stroke="#d98878" stroke-width="1.5" opacity="0.09"/>
+  <line x1="545" y1="362" x2="700" y2="362" stroke="#a85848" stroke-width="1.5" opacity="0.09"/>
+
+  <!-- Grid lines cluster 2 -->
+  <line x1="1280" y1="680" x2="1280" y2="850" stroke="#c97060" stroke-width="2" opacity="0.13"/>
+  <line x1="1310" y1="665" x2="1310" y2="835" stroke="#a85848" stroke-width="2" opacity="0.11"/>
+  <line x1="1340" y1="685" x2="1340" y2="855" stroke="#c97060" stroke-width="2" opacity="0.11"/>
+  <line x1="1370" y1="670" x2="1370" y2="840" stroke="#d98878" stroke-width="2" opacity="0.11"/>
+  <line x1="1265" y1="700" x2="1390" y2="700" stroke="#c97060" stroke-width="1.5" opacity="0.09"/>
+  <line x1="1265" y1="728" x2="1390" y2="728" stroke="#a85848" stroke-width="1.5" opacity="0.09"/>
+  <line x1="1265" y1="756" x2="1390" y2="756" stroke="#c97060" stroke-width="1.5" opacity="0.09"/>
+  <line x1="1265" y1="784" x2="1390" y2="784" stroke="#d98878" stroke-width="1.5" opacity="0.09"/>
+
+  <!-- Organic blob shapes -->
+  <path d="M920,450 Q960,370 1020,420 Q1080,470 1050,540 Q1020,610 960,585 Q900,560 880,510 Q860,460 920,450 Z" fill="#c97060" opacity="0.11"/>
+  <path d="M260,420 Q310,340 370,390 Q430,440 400,515 Q370,590 310,562 Q250,535 235,478 Q220,420 260,420 Z" fill="#a85848" opacity="0.11"/>
+  <path d="M1480,830 Q1530,750 1590,800 Q1650,850 1620,925 Q1590,1000 1530,970 Q1470,940 1455,880 Q1440,820 1480,830 Z" fill="#d98878" opacity="0.11"/>
+
+  <!-- Ring circles -->
+  <circle cx="960" cy="540" r="130" fill="none" stroke="#c97060" stroke-width="1" opacity="0.11"/>
+  <circle cx="960" cy="540" r="190" fill="none" stroke="#c97060" stroke-width="0.8" opacity="0.08"/>
+  <circle cx="960" cy="540" r="260" fill="none" stroke="#a85848" stroke-width="0.6" opacity="0.06"/>
+
+  <circle cx="260" cy="180" r="100" fill="none" stroke="#d98878" stroke-width="1" opacity="0.13"/>
+  <circle cx="260" cy="180" r="150" fill="none" stroke="#c97060" stroke-width="0.6" opacity="0.09"/>
+
+  <circle cx="1660" cy="880" r="120" fill="none" stroke="#c97060" stroke-width="1" opacity="0.11"/>
+  <circle cx="1660" cy="880" r="180" fill="none" stroke="#a85848" stroke-width="0.6" opacity="0.08"/>
+
+  <!-- Outline shapes -->
+  <path d="M450,600 Q510,570 540,610 Q570,650 530,680 Q490,710 455,680 Q420,650 450,600 Z" fill="none" stroke="#c97060" stroke-width="1.5" opacity="0.13"/>
+  <path d="M1400,240 Q1460,210 1490,250 Q1520,290 1480,320 Q1440,350 1405,320 Q1370,290 1400,240 Z" fill="none" stroke="#d98878" stroke-width="1.5" opacity="0.11"/>
+</svg>
