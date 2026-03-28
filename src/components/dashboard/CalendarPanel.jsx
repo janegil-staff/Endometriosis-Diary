@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
-import { combineScore } from "@/components/dashboard/endoUtils";
 
+// ── Colour scale ─────────────────────────────────────────────────────────
 function scoreBg(score) {
   if (!score || score <= 1) return "#d6eef8";
   if (score <= 2) return "#4CC189";
@@ -16,6 +16,36 @@ function scoreText(score) {
   return "#fff";
 }
 
+// ── Normalise field values to 1–5 scale ───────────────────────────────────
+function normaliseScore(rec, field) {
+  if (!rec) return 0;
+  const v = rec[field] ?? 1;
+  // absent fields: 1=none→1, 2=partial→3, 3=full day→5
+  if (field === "absentWork" || field === "absentSocial") {
+    return v === 1 ? 1 : v === 2 ? 3 : 5;
+  }
+  // sleepQuality: inverted — 1=poor→5(bad/red), 2=fair→3, 3=good→1(blue)
+  if (field === "sleepQuality") {
+    return v === 1 ? 5 : v === 2 ? 3 : 1;
+  }
+  // all other fields are 1–5 directly
+  return v;
+}
+
+// ── Field definitions ─────────────────────────────────────────────────────
+const FIELDS = [
+  { key: "intensity",         tKey: "fieldIntensity",    fallback: "Total pain"                    },
+  { key: "bowelMovementPain", tKey: "fieldBowel",        fallback: "Pain during bowel movements"   },
+  { key: "urinationPain",     tKey: "fieldUrination",    fallback: "Pain during urination"         },
+  { key: "endoBelly",         tKey: "fieldEndoBelly",    fallback: "Endo belly"                    },
+  { key: "fatigue",           tKey: "fieldFatigue",      fallback: "Fatigue"                       },
+  { key: "stress",            tKey: "fieldStress",       fallback: "Stress level"                  },
+  { key: "sexualPain",        tKey: "fieldSexualPain",   fallback: "Pain during sex"               },
+  { key: "absentWork",        tKey: "fieldAbsentWork",   fallback: "Absent from work/school"       },
+  { key: "absentSocial",      tKey: "fieldAbsentSocial", fallback: "Absent from social activities" },
+  { key: "sleepQuality",      tKey: "fieldSleepQuality", fallback: "Sleep quality"                 },
+];
+
 export default function CalendarPanel({
   t,
   records,
@@ -27,6 +57,8 @@ export default function CalendarPanel({
   viewYear,
   viewMonth,
   onViewChange,
+  selectedField,
+  onFieldChange,
 }) {
   const now = new Date();
   const vy  = viewYear  ?? now.getFullYear();
@@ -61,16 +93,19 @@ export default function CalendarPanel({
     [records, monthKey],
   );
 
+  // Monthly summary based on selectedField — wrapped in useMemo so it recomputes on field change
+  const fieldScores = useMemo(
+    () => monthRecords.map((r) => normaliseScore(r, selectedField)),
+    [monthRecords, selectedField],
+  );
   const counts = {
     filled:       monthRecords.length,
     periodDays:   monthRecords.filter((r) => r.period >= 2).length,
-    light:        monthRecords.filter((r) => combineScore(r) === 2).length,
-    medium:       monthRecords.filter((r) => combineScore(r) === 3).length,
-    heavy:        monthRecords.filter((r) => combineScore(r) === 4).length,
-    extreme:      monthRecords.filter((r) => combineScore(r) === 5).length,
+    light:        fieldScores.filter((s) => s === 2).length,
+    medium:       fieldScores.filter((s) => s === 3).length,
+    heavy:        fieldScores.filter((s) => s === 4).length,
+    extreme:      fieldScores.filter((s) => s === 5).length,
     medicineDays: monthRecords.filter((r) => r.acuteMedicines?.length > 0).length,
-    flareUps:     monthRecords.filter((r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4).length,
-    activityDays: monthRecords.filter((r) => r.physicalActivity > 0).length,
   };
 
   const checkboxes = [
@@ -81,15 +116,35 @@ export default function CalendarPanel({
     { key: "activity", label: t.showActivity ?? "Show activity",  color: "#5cb85c" },
   ];
 
-  // Match the app exactly: Month sum, Period, Light, Medium, Heavy, Extreme, Medication
-  const summaryRows = [
-    { color: "#c97060", label: t.monthlySummary ?? "Month sum",      value: counts.filled,       always: true        },
-    { color: "#e05a5a", label: t.symptomPeriod  ?? "Period",         value: `${counts.periodDays} ${counts.periodDays === 1 ? "day" : "days"}`, showKey: "period"   },
-    { color: "#4CC189", label: t.mild           ?? "Light",          value: `${counts.light} ${counts.light === 1 ? "day" : "days"}`,           always: true        },
-    { color: "#FFC659", label: t.moderate       ?? "Medium",         value: `${counts.medium} ${counts.medium === 1 ? "day" : "days"}`,         always: true        },
-    { color: "#FF7473", label: t.serious        ?? "Heavy",          value: `${counts.heavy} ${counts.heavy === 1 ? "day" : "days"}`,           always: true        },
-    { color: "#BE3830", label: t.veryHigh       ?? "Extreme",        value: `${counts.extreme} ${counts.extreme === 1 ? "day" : "days"}`,       always: true        },
-    { color: "#7b68ee", label: t.medication     ?? "Medication",     value: `${counts.medicineDays} ${counts.medicineDays === 1 ? "day" : "days"}`, showKey: "medicine" },
+  const d = (n) => `${n} ${n === 1 ? "day" : "days"}`;
+  const isAbsentField = selectedField === "absentWork" || selectedField === "absentSocial";
+  const isSleepField  = selectedField === "sleepQuality";
+
+  const absentPartial = isAbsentField ? monthRecords.filter((r) => r[selectedField] === 2).length : 0;
+  const absentFull    = isAbsentField ? monthRecords.filter((r) => r[selectedField] === 3).length : 0;
+  const sleepPoor     = isSleepField  ? monthRecords.filter((r) => r.sleepQuality === 1).length : 0;
+  const sleepFair     = isSleepField  ? monthRecords.filter((r) => r.sleepQuality === 2).length : 0;
+  const sleepGood     = isSleepField  ? monthRecords.filter((r) => r.sleepQuality === 3).length : 0;
+
+  const summaryRows = isAbsentField ? [
+    { color: "#c97060", label: t.monthlySummary ?? "Month sum",  value: d(counts.filled),       always: true },
+    { color: "#FFC659", label: t.partial        ?? "Partial",    value: d(absentPartial),        always: true },
+    { color: "#BE3830", label: t.full           ?? "Full day",   value: d(absentFull),           always: true },
+    { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
+  ] : isSleepField ? [
+    { color: "#c97060", label: t.monthlySummary ?? "Month sum",  value: d(counts.filled),       always: true },
+    { color: "#FF7473", label: t.poor           ?? "Poor",       value: d(sleepPoor),            always: true },
+    { color: "#FFC659", label: t.fair           ?? "Fair",       value: d(sleepFair),            always: true },
+    { color: "#4CC189", label: t.good           ?? "Good",       value: d(sleepGood),            always: true },
+    { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
+  ] : [
+    { color: "#c97060", label: t.monthlySummary ?? "Month sum",  value: d(counts.filled),        always: true        },
+    { color: "#e05a5a", label: t.symptomPeriod  ?? "Period",     value: d(counts.periodDays),    showKey: "period"   },
+    { color: "#4CC189", label: t.mild           ?? "Light",      value: d(counts.light),         always: true        },
+    { color: "#FFC659", label: t.moderate       ?? "Medium",     value: d(counts.medium),        always: true        },
+    { color: "#FF7473", label: t.serious        ?? "Heavy",      value: d(counts.heavy),         always: true        },
+    { color: "#BE3830", label: t.veryHigh       ?? "Extreme",    value: d(counts.extreme),       always: true        },
+    { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
   ].filter(({ always, showKey }) => always || show[showKey]);
 
   return (
@@ -118,6 +173,38 @@ export default function CalendarPanel({
         </button>
       </div>
 
+      {/* Field dropdown */}
+      <div className="mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold shrink-0" style={{ color: "#b07a70" }}>
+            {t.dropdownLabel ?? "Showing"}:
+          </span>
+          <div className="relative flex-1">
+            <select
+              value={selectedField}
+              onChange={(e) => onFieldChange(e.target.value)}
+              className="w-full appearance-none text-xs font-semibold rounded-xl px-3 py-2 pr-8 cursor-pointer outline-none transition-all"
+              style={{
+                background: "rgba(201,112,96,0.07)",
+                border: "1px solid rgba(201,112,96,0.2)",
+                color: "#c97060",
+              }}
+            >
+              {FIELDS.map(({ key, tKey, fallback }) => (
+                <option key={key} value={key}>
+                  {t[tKey] ?? fallback}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 3.5L5 6.5L8 3.5" stroke="#c97060" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Day name headers */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {dayNames.map((d) => (
@@ -136,7 +223,7 @@ export default function CalendarPanel({
           const day        = i + 1;
           const dateStr    = `${monthKey}-${pad(day)}`;
           const rec        = recordMap[dateStr];
-          const score      = combineScore(rec);
+          const score      = normaliseScore(rec, selectedField);
           const bg         = rec ? scoreBg(score) : "rgba(201,112,96,0.03)";
           const tc         = scoreText(score);
           const isToday    = dateStr === todayStr;
@@ -236,7 +323,6 @@ export default function CalendarPanel({
             {t.monthlySummary ?? "Monthly summary"}
           </p>
         </div>
-
         {summaryRows.map(({ color, label, value }) => (
           <div
             key={label}
