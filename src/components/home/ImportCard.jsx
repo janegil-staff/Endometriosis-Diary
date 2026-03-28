@@ -15,7 +15,7 @@ export default function ImportCard({
         className="rounded-2xl overflow-hidden shadow-lg"
         style={{
           background: "rgba(255,255,255,0.82)",
-          border: "1px solid rgba(38,142,134,0.15)",
+          border: "1px solid rgba(201,112,96,0.18)",
           backdropFilter: "blur(10px)",
           padding: 40,
         }}
@@ -63,10 +63,12 @@ export default function ImportCard({
 
         {/* Form */}
         <div className="px-5 pb-5">
-          <p className="text-center font-bold tracking-widest text-sm mb-4 text-gray-800 uppercase">
+          <p className="text-center font-bold tracking-widest text-sm mb-4 uppercase"
+            style={{ color: "#5a3a34" }}>
             {t.importTitle}
           </p>
-          <p className="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-2">
+          <p className="text-xs font-semibold tracking-widest uppercase mb-2"
+            style={{ color: "#b07a70" }}>
             {t.importLabel}
           </p>
           <input
@@ -77,22 +79,23 @@ export default function ImportCard({
               setError(false);
             }}
             placeholder={t.placeholder}
-            className="w-full rounded-lg px-4 py-3 text-sm text-gray-800 mb-1 outline-none transition-all"
+            className="w-full rounded-lg px-4 py-3 text-sm mb-1 outline-none transition-all"
             style={{
-              background: "#f4f4f4",
-              border: `1px solid ${error ? "#e53e3e" : "#ddd"}`,
+              background: "#fdf4f2",
+              color: "#5a3a34",
+              border: `1px solid ${error ? "#e53e3e" : "rgba(201,112,96,0.25)"}`,
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = error ? "#e53e3e" : "#268E86";
-              e.target.style.boxShadow = "0 0 0 3px rgba(38,142,134,0.1)";
+              e.target.style.borderColor = error ? "#e53e3e" : "#c97060";
+              e.target.style.boxShadow = "0 0 0 3px rgba(201,112,96,0.1)";
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = error ? "#e53e3e" : "#ddd";
+              e.target.style.borderColor = error ? "#e53e3e" : "rgba(201,112,96,0.25)";
               e.target.style.boxShadow = "none";
             }}
           />
           {error && (
-            <p className="text-red-500 text-xs mt-1 mb-2 tracking-wide">
+            <p className="text-xs mt-1 mb-2 tracking-wide" style={{ color: "#e53e3e" }}>
               {t.invalidCode}
             </p>
           )}
@@ -100,7 +103,7 @@ export default function ImportCard({
           <button
             onClick={handleClick}
             className="w-full py-3 rounded-lg text-white text-sm font-bold tracking-widest uppercase transition-all hover:opacity-90"
-            style={{ background: "#268E86" }}
+            style={{ background: "#c97060" }}
           >
             {t.importButton}
           </button>
