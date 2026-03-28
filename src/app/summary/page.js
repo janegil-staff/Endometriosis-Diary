@@ -7,16 +7,15 @@ import { parseInitialState } from "@/lib/summary/dateHelpers";
 import {
   buildPainTrend,
   buildFlareData,
-  buildPeriodData,
   buildActivityData,
   buildSleepData,
   buildMedUsage,
 } from "@/lib/summary/summaryStats";
 import { SummaryHeader } from "@/components/summary/SummaryHeader";
 import {
+  OverviewCard,
   PainTrendCard,
   FlareUpCard,
-  PeriodCard,
   ActivityCard,
   SleepCard,
   MedicineCard,
@@ -72,7 +71,6 @@ export default function SummaryPage() {
 
   const painTrend    = buildPainTrend(records, t);
   const flareData    = buildFlareData(records, t);
-  const periodData   = buildPeriodData(records);
   const activityData = buildActivityData(records, t);
   const sleepData    = buildSleepData(records);
   const medList      = buildMedUsage(records, patient);
@@ -105,6 +103,8 @@ export default function SummaryPage() {
           className="grid gap-4"
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
         >
+          <OverviewCard t={t} records={records} />
+
           {records.length === 0 && (
             <Card title={t.summaryTab ?? "Summary"}>
               <p className="text-sm text-center py-4" style={{ color: "#b07a70" }}>
@@ -117,7 +117,6 @@ export default function SummaryPage() {
 
           <FlareUpCard t={t} flareData={flareData} months={months} vm={vm} vy={vy} />
 
-          <PeriodCard t={t} periodData={periodData} months={months} vm={vm} vy={vy} />
 
           <ActivityCard t={t} activityData={activityData} />
 
