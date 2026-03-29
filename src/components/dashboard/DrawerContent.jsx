@@ -14,7 +14,6 @@ const SYMPTOM_FIELDS = [
   { key: "fatigue",           labelKey: "symptomFatigue",    fallback: "Fatigue"        },
   { key: "stress",            labelKey: "symptomStress",     fallback: "Stress"         },
   { key: "emotion",           labelKey: "symptomEmotion",    fallback: "Mood"           },
-  { key: "sleepQuality",      labelKey: "symptomSleep",      fallback: "Sleep quality"  },
   { key: "sexualPain",        labelKey: "symptomSexualPain", fallback: "Sexual pain"    },
 ];
 
@@ -112,6 +111,19 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
         {visibleSymptoms.map(({ key, labelKey, fallback }) => {
           const val = record[key];
           if (!val || val < 2) return null;
+          // sleepQuality uses a 1-3 label scale, not a score bar
+          if (key === "sleepQuality") {
+            const sqLabel = val === 1 ? (t.poor ?? "Poor") : val === 2 ? (t.fair ?? "Fair") : (t.good ?? "Good");
+            const sqColor = val === 1 ? "#FF7473" : val === 2 ? "#FFC659" : "#4CC189";
+            return (
+              <div key={key} className="flex items-center gap-3">
+                <span className="text-xs w-32 flex-shrink-0" style={{ color: "#7a5a54" }}>
+                  {t[labelKey] ?? fallback}
+                </span>
+                <span className="text-xs font-bold" style={{ color: sqColor }}>{sqLabel}</span>
+              </div>
+            );
+          }
           return (
             <div key={key} className="flex items-center gap-3">
               <span className="text-xs w-32 flex-shrink-0" style={{ color: "#7a5a54" }}>
@@ -187,11 +199,19 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
             )}
             {hasSleep && (
               <div className="flex items-center justify-between">
-                <span className="text-xs" style={{ color: "#7a5a54" }}>{t.symptomSleep ?? "Sleep"}</span>
+                <span className="text-xs" style={{ color: "#7a5a54" }}>{t.sleepHours ?? "Sleep hours"}</span>
                 <span className="text-xs font-bold" style={{ color: "#3a8a3a" }}>
                   {record.sleepHours === 1
                     ? `1 ${t.hourSingular ?? "hour"}`
                     : `${record.sleepHours} ${t.hours ?? "hours"}`}
+                </span>
+              </div>
+            )}
+            {record.sleepHours > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs" style={{ color: "#7a5a54" }}>{t.sleepQualityTitle ?? "Sleep quality"}</span>
+                <span className="text-xs font-bold" style={{ color: record.sleepQuality === 1 ? "#FF7473" : record.sleepQuality === 2 ? "#FFC659" : "#4CC189" }}>
+                  {record.sleepQuality === 1 ? (t.poor ?? "Poor") : record.sleepQuality === 2 ? (t.fair ?? "Fair") : (t.good ?? "Good")}
                 </span>
               </div>
             )}
