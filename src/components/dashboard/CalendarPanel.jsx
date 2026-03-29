@@ -124,7 +124,8 @@ export default function CalendarPanel({
   const isSleepField  = selectedField === "sleepQuality";
 
   const absentPartial  = isAbsentField ? monthRecords.filter((r) => r[selectedField] === 2).length : 0;
-  const sexPrevented   = monthRecords.filter((r) => r.sexualPrevented === 3).length;
+  const sexPreventedPartial = monthRecords.filter((r) => r.sexualPrevented === 2).length;
+  const sexPreventedFull    = monthRecords.filter((r) => r.sexualPrevented === 3).length;
 
   const absentFull    = isAbsentField ? monthRecords.filter((r) => r[selectedField] === 3).length : 0;
   // Only count sleep entries where sleepHours > 0 (actually logged)
@@ -153,7 +154,8 @@ export default function CalendarPanel({
     { color: "#BE3830", label: t.veryHigh       ?? "Extreme",    value: d(counts.extreme),       always: true        },
     { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
     ...(selectedField === "sexualPain" ? [
-      { color: "#c084a0", label: t.fieldSexualPrevented ?? "Sex prevented", value: d(sexPrevented), showKey: "sexPrevented" },
+      { color: "#c084a0", label: (t.fieldSexualPrevented ?? "Sex prevented") + ` (${t.partial ?? "partial"})`, value: d(sexPreventedPartial), showKey: "sexPrevented" },
+      { color: "#e05a5a", label: (t.fieldSexualPrevented ?? "Sex prevented") + ` (${t.full ?? "full"})`,      value: d(sexPreventedFull),    showKey: "sexPrevented" },
     ] : []),
   ];
   const summaryRows = allSummaryRows.filter(({ always, showKey }) => always || show[showKey]);
