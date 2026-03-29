@@ -116,7 +116,7 @@ export default function CalendarPanel({
     { key: "medicine",     label: t.showMedicine     ?? "Show medicine",       color: "#7b68ee" },
     { key: "note",         label: t.showNote         ?? "Show notes",          color: "#5bc0de" },
     { key: "activity",     label: t.showActivity     ?? "Show activity",       color: "#5cb85c" },
-    { key: "sexPrevented", label: t.showSexPrevented ?? "Show sex prevented",  color: "#e05a5a" },
+    { key: "sexPrevented", label: t.showSexPrevented ?? "Show sex prevented",  color: "#c084a0" },
   ];
 
   const d = (n) => `${n} ${n === 1 ? "day" : "days"}`;
@@ -153,7 +153,7 @@ export default function CalendarPanel({
     { color: "#BE3830", label: t.veryHigh       ?? "Extreme",    value: d(counts.extreme),       always: true        },
     { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
     ...(selectedField === "sexualPain" ? [
-      { color: "#e05a5a", label: t.fieldSexualPrevented ?? "Sex prevented", value: d(sexPrevented), showKey: "sexPrevented" },
+      { color: "#c084a0", label: t.fieldSexualPrevented ?? "Sex prevented", value: d(sexPrevented), showKey: "sexPrevented" },
     ] : []),
   ];
   const summaryRows = allSummaryRows.filter(({ always, showKey }) => always || show[showKey]);
@@ -277,7 +277,7 @@ export default function CalendarPanel({
                 {hasMedicine     && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#7b68ee" }} />}
                 {hasActivity     && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5cb85c" }} />}
                 {hasNote         && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5bc0de" }} />}
-                {hasSexPrevented && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a", opacity: 0.5 }} />}
+                {hasSexPrevented && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#c084a0" }} />}
               </div>
             </div>
           );

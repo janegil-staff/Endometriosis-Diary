@@ -158,7 +158,7 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
         <div className="rounded-xl p-3 mb-3"
           style={{ background: "rgba(224,90,90,0.06)", border: "1px solid rgba(224,90,90,0.15)" }}>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "#e05a5a" }} />
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "#c084a0" }} />
             <span className="text-xs font-semibold" style={{ color: "#7a5a54" }}>
               {t.fieldSexualPrevented ?? "Sex prevented"}
               {record.sexualPrevented === 3
