@@ -111,11 +111,12 @@ export default function CalendarPanel({
   };
 
   const checkboxes = [
-    { key: "period",   label: t.showPeriod   ?? "Show period",   color: "#e05a5a" },
-    { key: "flareUp",  label: t.showFlareUp  ?? "Show flare-up", color: "#f5a623" },
-    { key: "medicine", label: t.showMedicine ?? "Show medicine",  color: "#7b68ee" },
-    { key: "note",     label: t.showNote     ?? "Show notes",     color: "#5bc0de" },
-    { key: "activity", label: t.showActivity ?? "Show activity",  color: "#5cb85c" },
+    { key: "period",       label: t.showPeriod       ?? "Show period",        color: "#e05a5a" },
+    { key: "flareUp",      label: t.showFlareUp      ?? "Show flare-up",      color: "#f5a623" },
+    { key: "medicine",     label: t.showMedicine     ?? "Show medicine",       color: "#7b68ee" },
+    { key: "note",         label: t.showNote         ?? "Show notes",          color: "#5bc0de" },
+    { key: "activity",     label: t.showActivity     ?? "Show activity",       color: "#5cb85c" },
+    { key: "sexPrevented", label: t.showSexPrevented ?? "Show sex prevented",  color: "#e05a5a" },
   ];
 
   const d = (n) => `${n} ${n === 1 ? "day" : "days"}`;
@@ -152,7 +153,7 @@ export default function CalendarPanel({
     { color: "#BE3830", label: t.veryHigh       ?? "Extreme",    value: d(counts.extreme),       always: true        },
     { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
     ...(selectedField === "sexualPain" ? [
-      { color: "#e05a5a", label: t.fieldSexualPrevented ?? "Sex prevented", value: d(sexPrevented), always: true },
+      { color: "#e05a5a", label: t.fieldSexualPrevented ?? "Sex prevented", value: d(sexPrevented), showKey: "sexPrevented" },
     ] : []),
   ];
   const summaryRows = allSummaryRows.filter(({ always, showKey }) => always || show[showKey]);
@@ -239,11 +240,12 @@ export default function CalendarPanel({
           const isToday    = dateStr === todayStr;
           const isSelected = dateStr === selectedDate;
 
-          const hasPeriod   = show.period   && rec && rec.period >= 2;
-          const hasFlareUp  = show.flareUp  && rec && (rec.intensity >= 4 || rec.bowelMovementPain >= 4 || rec.endoBelly >= 4);
-          const hasMedicine = show.medicine && rec?.acuteMedicines?.length > 0;
-          const hasActivity = show.activity && rec?.physicalActivity > 0;
-          const hasNote     = show.note     && rec?.note?.trim().length > 0;
+          const hasPeriod       = show.period       && rec && rec.period >= 2;
+          const hasFlareUp      = show.flareUp      && rec && (rec.intensity >= 4 || rec.bowelMovementPain >= 4 || rec.endoBelly >= 4);
+          const hasMedicine     = show.medicine     && rec?.acuteMedicines?.length > 0;
+          const hasActivity     = show.activity     && rec?.physicalActivity > 0;
+          const hasNote         = show.note         && rec?.note?.trim().length > 0;
+          const hasSexPrevented = show.sexPrevented && rec?.sexualPrevented >= 2;
 
           return (
             <div
@@ -270,11 +272,12 @@ export default function CalendarPanel({
                 {day}
               </span>
               <div className="flex gap-0.5 flex-wrap justify-center px-0.5">
-                {hasPeriod   && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a" }} />}
-                {hasFlareUp  && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#f5a623" }} />}
-                {hasMedicine && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#7b68ee" }} />}
-                {hasActivity && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5cb85c" }} />}
-                {hasNote     && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5bc0de" }} />}
+                {hasPeriod       && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a" }} />}
+                {hasFlareUp      && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#f5a623" }} />}
+                {hasMedicine     && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#7b68ee" }} />}
+                {hasActivity     && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5cb85c" }} />}
+                {hasNote         && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5bc0de" }} />}
+                {hasSexPrevented && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a", opacity: 0.5 }} />}
               </div>
             </div>
           );

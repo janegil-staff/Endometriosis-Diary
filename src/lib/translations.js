@@ -160,6 +160,7 @@ export const translations = {
       fieldAbsentSocial: "Absent from social activities",
       fieldSleepQuality: "Sleep quality",
       fieldSexualPrevented: "Sex prevented",
+      showSexPrevented: "Show sex prevented",
   },
   no: {
     title: "Endometriose Dagbok",
@@ -322,6 +323,7 @@ export const translations = {
       fieldAbsentSocial: "Fraværende fra sosiale aktiviteter",
       fieldSleepQuality: "Søvnkvalitet",
       fieldSexualPrevented: "Sex forhindret",
+      showSexPrevented: "Vis sex forhindret",
   },
   nl: {
     title: "Endometriose Dagboek",
@@ -486,6 +488,7 @@ export const translations = {
       fieldAbsentSocial: "Afwezig van sociale activiteiten",
       fieldSleepQuality: "Slaapkwaliteit",
       fieldSexualPrevented: "Seks verhinderd",
+      showSexPrevented: "Toon seks verhinderd",
   },
   fr: {
     title: "Journal de l'Endométriose",
@@ -650,6 +653,7 @@ export const translations = {
       fieldAbsentSocial: "Absent des activités sociales",
       fieldSleepQuality: "Qualité du sommeil",
       fieldSexualPrevented: "Rapports empêchés",
+      showSexPrevented: "Afficher rapports empêchés",
   },
   de: {
     title: "Endometriose-Tagebuch",
@@ -814,6 +818,7 @@ export const translations = {
       fieldAbsentSocial: "Abwesend von sozialen Aktivitäten",
       fieldSleepQuality: "Schlafqualität",
       fieldSexualPrevented: "Sex verhindert",
+      showSexPrevented: "Sex verhindert anzeigen",
   },
   it: {
     title: "Diario dell'Endometriosi",
@@ -978,6 +983,7 @@ export const translations = {
       fieldAbsentSocial: "Assente dalle attività sociali",
       fieldSleepQuality: "Qualità del sonno",
       fieldSexualPrevented: "Sesso impedito",
+      showSexPrevented: "Mostra sesso impedito",
   },
   sv: {
     title: "Endometrios Dagbok",
@@ -1142,6 +1148,7 @@ export const translations = {
       fieldAbsentSocial: "Frånvarande från sociala aktiviteter",
       fieldSleepQuality: "Sömnkvalitet",
       fieldSexualPrevented: "Sex förhindrat",
+      showSexPrevented: "Visa sex förhindrat",
   },
   da: {
     title: "Endometriose Dagbog",
@@ -1306,6 +1313,7 @@ export const translations = {
       fieldAbsentSocial: "Fraværende fra sociale aktiviteter",
       fieldSleepQuality: "Søvnkvalitet",
       fieldSexualPrevented: "Sex forhindret",
+      showSexPrevented: "Vis sex forhindret",
   },
   fi: {
     title: "Endometrioosi Päiväkirja",
@@ -1470,6 +1478,7 @@ export const translations = {
       fieldAbsentSocial: "Poissa sosiaalisista aktiviteeteista",
       fieldSleepQuality: "Unenlaatu",
       fieldSexualPrevented: "Yhdyntä estetty",
+      showSexPrevented: "Näytä yhdyntä estetty",
   },
   es: {
     title: "Diario de Endometriosis",
@@ -1634,6 +1643,7 @@ export const translations = {
       fieldAbsentSocial: "Ausente de actividades sociales",
       fieldSleepQuality: "Calidad del sueño",
       fieldSexualPrevented: "Sexo impedido",
+      showSexPrevented: "Mostrar sexo impedido",
   },
   pl: {
     title: "Dziennik Endometriozy",
@@ -1798,6 +1808,7 @@ export const translations = {
       fieldAbsentSocial: "Nieobecny w aktywnościach społecznych",
       fieldSleepQuality: "Jakość snu",
       fieldSexualPrevented: "Seks uniemożliwiony",
+      showSexPrevented: "Pokaż seks uniemożliwiony",
   },
   pt: {
     title: "Diário de Endometriose",
@@ -1962,5 +1973,6 @@ export const translations = {
       fieldAbsentSocial: "Ausente de atividades sociais",
       fieldSleepQuality: "Qualidade do sono",
       fieldSexualPrevented: "Sexo impedido",
+      showSexPrevented: "Mostrar sexo impedido",
   },
 };

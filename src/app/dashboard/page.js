@@ -29,6 +29,7 @@ export default function Dashboard() {
     medicine: true,
     note: true,
     activity: true,
+    sexPrevented: true,
   });
 
   const toggleShow = (key) =>
