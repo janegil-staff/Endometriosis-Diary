@@ -103,6 +103,20 @@ export default function CalendarPanel({
   );
   const counts = {
     filled:       monthRecords.length,
+none:         (() => {
+      const score1Count = fieldScores.filter((s) => s <= 1).length;
+      const today = new Date();
+      const todayStr = today.toISOString().slice(0, 10);
+      const isCurrentMonth = vy === today.getFullYear() && vm === today.getMonth();
+      const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
+      const recordedDates = new Set(monthRecords.map((r) => r.date));
+      let unregistered = 0;
+      for (let day = 1; day <= lastDay; day++) {
+        const dateStr = `${monthKey}-${String(day).padStart(2, "0")}`;
+        if (!recordedDates.has(dateStr)) unregistered++;
+      }
+      return score1Count + unregistered;
+    })(),
     periodDays:   monthRecords.filter((r) => r.period >= 2).length,
     light:        fieldScores.filter((s) => s === 2).length,
     medium:       fieldScores.filter((s) => s === 3).length,
@@ -148,12 +162,13 @@ export default function CalendarPanel({
     { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
   ] : [
     { color: "#c97060", label: t.monthlySummary ?? "Month sum",  value: d(counts.filled),        always: true        },
-    { color: "#e05a5a", label: t.symptomPeriod  ?? "Period",     value: d(counts.periodDays),    showKey: "period"   },
+    { color: "#7ab8d4", label: t.noPain         ?? "None",       value: d(counts.none),          always: true        },
     { color: "#4CC189", label: t.mild           ?? "Light",      value: d(counts.light),         always: true        },
     { color: "#FFC659", label: t.moderate       ?? "Medium",     value: d(counts.medium),        always: true        },
     { color: "#FF7473", label: t.serious        ?? "Heavy",      value: d(counts.heavy),         always: true        },
     { color: "#BE3830", label: t.veryHigh       ?? "Extreme",    value: d(counts.extreme),       always: true        },
     { color: "#7b68ee", label: t.medication     ?? "Medication", value: d(counts.medicineDays),  showKey: "medicine" },
+    { color: "#e05a5a", label: t.symptomPeriod  ?? "Period",     value: d(counts.periodDays),    showKey: "period"   },
     ...(selectedField === "sexualPain" ? [
       { color: "#c084a0", label: (t.fieldSexualPrevented ?? "Sex prevented") + ` (${t.partial ?? "partial"})`, value: d(sexPreventedPartial), showKey: "sexPrevented" },
       { color: "#e05a5a", label: (t.fieldSexualPrevented ?? "Sex prevented") + ` (${t.full ?? "full"})`,      value: d(sexPreventedFull),    showKey: "sexPrevented" },
