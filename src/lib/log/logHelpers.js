@@ -19,8 +19,18 @@ export const filterRecords = (records, search, patient, t) => {
   if (!search.trim()) return records;
   const q = search.toLowerCase();
   return records.filter((r) => {
-    if (r.date.includes(q)) return true;
+
     if (r.note?.toLowerCase().includes(q)) return true;
+    // pain score — match number e.g. "3" or label e.g. "medium"
+    const score = combineScore(r);
+    if (String(score).includes(q)) return true;
+    const scoreLabel =
+      score <= 1 ? (t?.noPain    ?? "none")
+      : score <= 2 ? (t?.mild    ?? "light")
+      : score <= 3 ? (t?.moderate ?? "medium")
+      : score <= 4 ? (t?.serious  ?? "heavy")
+      :               (t?.veryHigh ?? "extreme");
+    if (scoreLabel.toLowerCase().includes(q)) return true;
     if (r.acuteMedicines?.some((id) => {
       const med = patient.medicines?.find((m) => m.id === id);
       return med?.name?.toLowerCase().includes(q);
