@@ -78,6 +78,7 @@ export default function ImportCard({
               handleChange(e.target.value);
               setError(false);
             }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleClick(e); } }}
             placeholder={t.placeholder}
             className="w-full rounded-lg px-4 py-3 text-sm mb-1 outline-none transition-all"
             style={{

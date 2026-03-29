@@ -7,8 +7,8 @@ export function OverviewCard({ t, records }) {
   const scores      = records.map((r) => r.intensity ?? 1);
   const painScores  = scores.filter((s) => s > 1);
   const avgPain     = painScores.length ? Math.round(painScores.reduce((a, b) => a + b, 0) / painScores.length * 10) / 10 : null;
-  const minPain     = painScores.length ? Math.min(...painScores) : null;
-  const maxPain     = painScores.length ? Math.max(...painScores) : null;
+  const minPain     = scores.length ? Math.min(...scores) : null;
+  const maxPain     = scores.length ? Math.max(...scores) : null;
   const periodDays  = records.filter((r) => r.period >= 2).length;
   const flareUps    = records.filter((r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4).length;
   const medDays     = records.filter((r) => r.acuteMedicines?.length > 0).length;
