@@ -3,11 +3,12 @@ import { useMemo } from "react";
 
 // ── Colour scale ─────────────────────────────────────────────────────────
 function scoreBg(score) {
-  if (!score || score <= 1) return "#d6eef8";
-  if (score <= 2) return "#4CC189";
-  if (score <= 3) return "#FFC659";
-  if (score <= 4) return "#FF7473";
-  return "#BE3830";
+  if (!score || score === 0) return "rgba(201,112,96,0.03)"; // no data
+  if (score <= 1) return "#d6eef8";  // light blue = baseline/none
+  if (score <= 2) return "#4CC189";  // green
+  if (score <= 3) return "#FFC659";  // yellow
+  if (score <= 4) return "#FF7473";  // red
+  return "#BE3830";                  // dark red
 }
 
 function scoreText(score) {
@@ -25,10 +26,10 @@ function normaliseScore(rec, field) {
     return v === 1 ? 1 : v === 2 ? 3 : 5;
   }
   // sleepQuality: inverted — only colour if sleep was actually logged (sleepHours > 0)
-  // 1=poor→5(red), 2=fair→3(yellow), 3=good→1(blue). No sleep logged → 1(blue/none)
+  // 1=poor→4(red-ish), 2=fair→3(yellow), 3=good→2(green). No sleep logged → 0(no colour)
   if (field === "sleepQuality") {
     if (!rec.sleepHours || rec.sleepHours === 0) return 1;
-    return v === 1 ? 5 : v === 2 ? 3 : 1;
+    return v === 1 ? 4 : v === 2 ? 3 : 2;
   }
   // all other fields are 1–5 directly
   return v;
