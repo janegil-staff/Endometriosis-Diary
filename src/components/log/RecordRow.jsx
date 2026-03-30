@@ -116,11 +116,11 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst })
             {fmt}
           </span>
           <div className="flex gap-1 items-center">
-            {isFlareUp   && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#f5a623" }} />}
-            {hasPeriod   && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a" }} />}
-            {noteText    && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5bc0de" }} />}
+            {isFlareUp          && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#f5a623" }} />}
+            {hasPeriod          && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a" }} />}
+            {noteText           && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5bc0de" }} />}
             {usedMeds.length > 0 && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#7b68ee" }} />}
-            {hasActivity && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5cb85c" }} />}
+            {hasActivity        && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5cb85c" }} />}
           </div>
         </div>
 
@@ -130,7 +130,7 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst })
               🏃 {actLabel}
             </span>
           )}
-          {score > 1 && (
+          {score >= 1 && (
             <span
               className="text-xs font-bold px-2.5 py-0.5 rounded-full"
               style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
