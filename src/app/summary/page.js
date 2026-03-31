@@ -19,6 +19,7 @@ import {
   ActivityCard,
   SleepCard,
   MedicineCard,
+  MedicineEffectivenessCard,
 } from "@/components/summary/SummaryCards";
 import { Card } from "@/components/summary/Card";
 
@@ -154,7 +155,6 @@ export default function SummaryPage() {
             </Card>
           ) : (
             <>
-
               <OverviewCard t={t} records={records} />
 
               <PainTrendCard
@@ -179,10 +179,10 @@ export default function SummaryPage() {
 
               <SleepCard t={t} sleepData={sleepData} />
 
-              <MedicineCard
+              <MedicineEffectivenessCard
                 t={t}
-                medList={medList}
-                recordsCount={records.length}
+                records={records}
+                medicines={patient.medicines ?? []}
               />
             </>
           )}
