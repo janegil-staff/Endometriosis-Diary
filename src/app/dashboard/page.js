@@ -54,7 +54,6 @@ export default function Dashboard() {
   const [patient, setPatient]               = useState(() => parsePatientData());
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [drawerOpen, setDrawerOpen]         = useState(false);
-  const [menuOpen, setMenuOpen]             = useState(false);
 
   const now = new Date();
   const [viewYear,  setViewYear]  = useState(now.getFullYear());
@@ -87,21 +86,15 @@ export default function Dashboard() {
     ? patient.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
     : "??";
 
-  const tabs = [
-    { label: t.calendarTab ?? "Calendar", href: "/dashboard" },
-    { label: t.summaryTab  ?? "Summary",  href: "/summary"   },
-    { label: t.logTab      ?? "Log",      href: "/log"       },
-  ];
-
   const sidebarProps = {
     t,
-    records:         patient.records ?? [],
+    records:          patient.records ?? [],
     viewYear,
     viewMonth,
     show,
-    onToggleShow:    toggleShow,
+    onToggleShow:     toggleShow,
     selectedRecord,
-    medicines:       patient.medicines ?? [],
+    medicines:        patient.medicines ?? [],
     onClearSelection: () => setSelectedRecord(null),
     selectedField,
   };
@@ -134,9 +127,10 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Logout button — always visible */}
         <button
           onClick={() => { sessionStorage.removeItem("patientData"); router.replace("/"); }}
-          className="hidden lg:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition-all"
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition-all"
           style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -146,55 +140,11 @@ export default function Dashboard() {
           </svg>
           {t.logout ?? "Sign out"}
         </button>
-
-        <button
-          className="lg:hidden w-8 h-8 flex flex-col gap-1.5 items-center justify-center rounded-lg"
-          style={{ background: "rgba(255,255,255,0.12)" }}
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          {[0, 1, 2].map((i) => (
-            <span key={i} className="block w-4 h-0.5 rounded" style={{ background: "#fff" }} />
-          ))}
-        </button>
-
-        {menuOpen && (
-          <div
-            className="absolute top-full right-4 mt-1 rounded-xl shadow-xl py-1 z-50 min-w-[160px] lg:hidden"
-            style={{ background: "#fff", border: "1px solid rgba(201,112,96,0.15)" }}
-          >
-            {tabs.map(({ label, href }) => (
-              <button
-                key={href}
-                onClick={() => { router.push(href); setMenuOpen(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 transition-colors"
-                style={{
-                  color: pathname === href ? "#c97060" : "#5a3a34",
-                  fontWeight: pathname === href ? 700 : 400,
-                  borderBottom: "1px solid rgba(201,112,96,0.08)",
-                }}
-              >
-                {label}
-              </button>
-            ))}
-            <button
-              onClick={() => { sessionStorage.removeItem("patientData"); router.replace("/"); }}
-              className="w-full text-left px-4 py-2.5 text-sm"
-              style={{ color: "#b07a70" }}
-            >
-              {t.logout ?? "Sign out"}
-            </button>
-          </div>
-        )}
       </header>
 
       {/* ── Body ────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col items-center overflow-y-auto p-4 lg:p-10 gap-4">
 
-        {/*
-          Card:
-          - Mobile:  column → [calendar + checkboxes] / [divider] / [summary]
-          - Desktop: row    → [calendar + checkboxes] | [divider] | [summary 220px]
-        */}
         <div
           className="flex flex-row w-full"
           style={{
@@ -247,13 +197,7 @@ export default function Dashboard() {
             </div>
 
             {/* Summary + Log links */}
-            <div
-              style={{
-                padding: "0 24px 20px",
-                display: "flex",
-                gap: 10,
-              }}
-            >
+            <div style={{ padding: "0 24px 20px", display: "flex", gap: 10 }}>
               {[
                 {
                   label: t.summaryTab ?? "Sammendrag",
@@ -285,13 +229,7 @@ export default function Dashboard() {
                   key={href}
                   onClick={() => router.push(href)}
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all hover:opacity-90 active:scale-95"
-                  style={{
-                    fontSize: 13,
-                    color: "#fff",
-                    background: bg,
-                    boxShadow: shadow,
-                    border: "none",
-                  }}
+                  style={{ fontSize: 13, color: "#fff", background: bg, boxShadow: shadow, border: "none" }}
                 >
                   {icon}
                   {label}
@@ -299,7 +237,6 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-
 
           {/* ── Right: monthly summary — desktop sidebar ────────────── */}
           <div

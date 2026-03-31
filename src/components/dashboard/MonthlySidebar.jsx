@@ -26,11 +26,14 @@ function ScoreBar({ value }) {
   );
 }
 
-function SummaryRow({ dot, label, value, valueColor }) {
+function SummaryRow({ dot, label, value, valueColor, icon }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2.5"
       style={{ borderBottom: "1px solid rgba(201,112,96,0.06)" }}>
-      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: dot }} />
+      {icon
+        ? <img src={icon} alt="" className="w-5 h-5 flex-shrink-0" />
+        : <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: dot }} />
+      }
       <span style={{ fontSize: 11, color: "#7a5a54", flex: 1 }}>{label}</span>
       <span style={{ fontSize: 12, fontWeight: 700, color: valueColor ?? "#8b4038" }}>{value}</span>
     </div>
@@ -48,20 +51,20 @@ function DayDetailPanel({ t, record, medicines = [] }) {
     score <= 2 ? "#4CC189" : score <= 3 ? "#FFC659" : score <= 4 ? "#FF7473" : "#BE3830";
   const scoreLabel =
     !score || score <= 1 ? (t.noSymptoms ?? "No symptoms") :
-    score <= 2 ? (t.mild ?? "Light") : score <= 3 ? (t.moderate ?? "Medium") :
-    score <= 4 ? (t.serious ?? "Heavy") : (t.veryHigh ?? "Extreme");
+    score <= 2 ? (t.mild ?? "Mild") : score <= 3 ? (t.moderate ?? "Moderate") :
+    score <= 4 ? (t.serious ?? "Strong") : (t.veryHigh ?? "Extreme");
 
   const SYMPTOMS = [
-    { key: "intensity",         label: t.symptomPain     ?? "Pain"        },
-    { key: "bowelMovementPain", label: t.symptomBowel    ?? "Bowel pain"  },
-    { key: "endoBelly",         label: t.symptomBloating ?? "Bloating"    },
-    { key: "fatigue",           label: t.symptomFatigue  ?? "Fatigue"     },
-    { key: "nausea",            label: t.symptomNausea   ?? "Nausea"      },
-    { key: "headache",          label: t.symptomHeadache ?? "Headache"    },
-    { key: "backPain",          label: t.symptomBackPain ?? "Back pain"   },
-    { key: "legPain",           label: t.symptomLegPain  ?? "Leg pain"    },
-    { key: "moodSwings",        label: t.symptomMood     ?? "Mood"        },
-    { key: "anxiety",           label: t.symptomAnxiety  ?? "Anxiety"     },
+    { key: "intensity",         label: t.symptomPain     ?? "Pain"       },
+    { key: "bowelMovementPain", label: t.symptomBowel    ?? "Bowel pain" },
+    { key: "endoBelly",         label: t.symptomBloating ?? "Bloating"   },
+    { key: "fatigue",           label: t.symptomFatigue  ?? "Fatigue"    },
+    { key: "nausea",            label: t.symptomNausea   ?? "Nausea"     },
+    { key: "headache",          label: t.symptomHeadache ?? "Headache"   },
+    { key: "backPain",          label: t.symptomBackPain ?? "Back pain"  },
+    { key: "legPain",           label: t.symptomLegPain  ?? "Leg pain"   },
+    { key: "moodSwings",        label: t.symptomMood     ?? "Mood"       },
+    { key: "anxiety",           label: t.symptomAnxiety  ?? "Anxiety"    },
   ].filter(({ key }) => (record[key] ?? 0) >= 2);
 
   const periodLabel =
@@ -165,7 +168,7 @@ function DayDetailPanel({ t, record, medicines = [] }) {
             })(),
             "#4ab5c4"
           )}
-          {(record.sleepHours ?? 0) > 0       && row("#4a9e8c", t.sleepHours       ?? "Sleep hours", `${record.sleepHours}h`, "#4a9e8c")}
+          {(record.sleepHours ?? 0) > 0 && row("#4a9e8c", t.sleepHours ?? "Sleep hours", `${record.sleepHours}h`, "#4a9e8c")}
           {sleepQLabel && row(
             record.sleepQuality === 1 ? "#FF7473" : record.sleepQuality === 2 ? "#FFC659" : "#4CC189",
             t.sleepQualityTitle ?? "Sleep quality", sleepQLabel,
@@ -208,14 +211,14 @@ export default function MonthlySidebar({
     "July","August","September","October","November","December",
   ];
 
-  const { counts, avgPain, daysInMonth } = useMemo(() => {
+  const { counts, avgPain, daysInMonth, monthlyScore } = useMemo(() => {
     const daysInMonth  = new Date(vy, vm + 1, 0).getDate();
     const mrs          = records.filter((r) => r.date?.startsWith(monthKey));
     const avgPain      = mrs.length
       ? Math.round((mrs.reduce((s, r) => s + (selectedField ? (r[selectedField] ?? 0) : (combineScore(r) ?? 0)), 0) / mrs.length) * 10) / 10
       : null;
     const counts = {
-      filled:       mrs.length,
+      filled: mrs.length,
       ...((() => {
         const isAbsent = selectedField === "absentWork" || selectedField === "absentSocial";
         const isSleep  = selectedField === "sleepQuality";
@@ -223,18 +226,20 @@ export default function MonthlySidebar({
           if (!selectedField) return combineScore(r);
           const v = r[selectedField] ?? 0;
           if (isAbsent) return v === 0 ? 0 : v === 1 ? 1 : v === 2 ? 3 : 5;
-          if (selectedField === "sleepQuality") {
+          if (isSleep) {
             if (v === 0) return 0;
             if (v === 3) return 2;
             if (v === 2) return 3;
             if (v === 1 && (r.sleepHours ?? 0) > 0) return 5;
-            return 1; // sleepQuality=1 + no hours = not recorded
+            return 1;
           }
           return v;
         };
         const active = mrs.filter((r) => score(r) >= 2);
         return {
-          minimal: isSleep ? (daysInMonth - mrs.filter((r) => (r.sleepQuality ?? 0) >= 2 || ((r.sleepQuality ?? 0) === 1 && (r.sleepHours ?? 0) > 0)).length) : daysInMonth - active.length,
+          minimal: isSleep
+            ? (daysInMonth - mrs.filter((r) => (r.sleepQuality ?? 0) >= 2 || ((r.sleepQuality ?? 0) === 1 && (r.sleepHours ?? 0) > 0)).length)
+            : daysInMonth - active.length,
           light:   isSleep ? mrs.filter((r) => (r.sleepQuality ?? 0) === 3).length : isAbsent ? 0 : mrs.filter((r) => score(r) === 2).length,
           medium:  isSleep ? mrs.filter((r) => (r.sleepQuality ?? 0) === 2).length : isAbsent ? mrs.filter((r) => (r[selectedField] ?? 0) === 2).length : mrs.filter((r) => score(r) === 3).length,
           heavy:   isAbsent || isSleep ? 0 : mrs.filter((r) => score(r) === 4).length,
@@ -242,11 +247,11 @@ export default function MonthlySidebar({
         };
       })()),
       medicineDays: mrs.filter((r) => r.acuteMedicines?.length > 0).length,
-      activityDays:  mrs.filter((r) => {
+      activityDays: mrs.filter((r) => {
         const mins = (r.physicalActivityHours ?? 0) * 60 + (r.physicalActivityMinutes ?? 0) + (r.physicalActivity ?? 0);
         return mins > 0;
       }).length,
-      activityAvgH:  (() => {
+      activityAvgH: (() => {
         const active = mrs.filter((r) => {
           const mins = (r.physicalActivityHours ?? 0) * 60 + (r.physicalActivityMinutes ?? 0) + (r.physicalActivity ?? 0);
           return mins > 0;
@@ -261,42 +266,39 @@ export default function MonthlySidebar({
         const m = avgMins % 60;
         return h > 0 ? (m > 0 ? `${h}t ${m}min` : `${h}t`) : `${m}min`;
       })(),
-      sleepPoor:     mrs.filter((r) => (r.sleepQuality ?? 0) === 1 && (r.sleepHours ?? 0) > 0).length,
-      sexPartial:    mrs.filter((r) => (r.sexualPrevented ?? 0) === 2).length,
-      sexFull:       mrs.filter((r) => (r.sexualPrevented ?? 0) === 3).length,
+      sleepPoor:  mrs.filter((r) => (r.sleepQuality ?? 0) === 1 && (r.sleepHours ?? 0) > 0).length,
+      sexPartial: mrs.filter((r) => (r.sexualPrevented ?? 0) === 2).length,
+      sexFull:    mrs.filter((r) => (r.sexualPrevented ?? 0) === 3).length,
     };
-    return { counts, avgPain, daysInMonth };
+    const monthlyScore = mrs.reduce((s, r) => s + ((r.intensity ?? 1) - 1), 0);
+    return { counts, avgPain, daysInMonth, monthlyScore };
   }, [records, vy, vm, monthKey, selectedField]);
 
   const isAbsentField = selectedField === "absentWork" || selectedField === "absentSocial";
   const isSleepField  = selectedField === "sleepQuality";
 
-  // Only: days recorded, avg pain, light/medium/heavy/extreme, medication, activity
   const summaryRows = [
-    { dot: "#c97060",          label: t.daysRecorded     ?? "Days recorded", value: `${counts.filled} / ${daysInMonth}` },
-    { dot: painColor(avgPain), label: t.avgPain          ?? "Avg. pain",     value: avgPain !== null ? `${avgPain} / 5` : "–", valueColor: painColor(avgPain) },
-    
-    ...(!isSleepField && !isAbsentField ? [{ dot: "#4a8aa8", label: t.minimal ?? "Minimal", value: `${counts.minimal}d`  }] : []),
-
+    { dot: "#6B3A2A", icon: "/icons/brown_ring.png", label: t.monthScore ?? "Month score", value: `${monthlyScore}` },
+    // Minimal hidden for sleep and absent fields
+    ...(!isSleepField && !isAbsentField ? [{ dot: "#4a8aa8", icon: "/icons/ico_intensity_no.png",       label: t.painNone ?? "None",     value: `${counts.minimal} days` }] : []),
     ...(isAbsentField ? [
-      { dot: "#FFC659", label: t.partial ?? "Partial", value: `${counts.medium}d`  },
-      { dot: "#BE3830", label: t.full    ?? "Full",    value: `${counts.extreme}d` },
+      { dot: "#FFC659", icon: "/icons/ico_intensity_moderate.png", label: t.partial ?? "Partial", value: `${counts.medium} days`  },
+      { dot: "#BE3830", icon: "/icons/ico_intensity_serious.png",  label: t.full    ?? "Full",    value: `${counts.extreme} days` },
     ] : isSleepField ? [
-      { dot: "#4CC189", label: t.good     ?? "Good",     value: `${counts.light}d`   },
-      { dot: "#FFC659", label: t.moderate ?? "Moderate", value: `${counts.medium}d`  },
-      { dot: "#BE3830", label: t.poor     ?? "Poor",     value: `${counts.sleepPoor}d` },
+      { dot: "#4CC189", icon: "/icons/ico_intensity_mild.png",     label: t.good     ?? "Good",     value: `${counts.light} days`     },
+      { dot: "#FFC659", icon: "/icons/ico_intensity_moderate.png", label: t.moderate ?? "Moderate", value: `${counts.medium} days`    },
+      { dot: "#BE3830", icon: "/icons/ico_intensity_serious.png",  label: t.poor     ?? "Poor",     value: `${counts.sleepPoor} days` },
     ] : [
-      { dot: "#4CC189", label: t.mild    ?? "Light",   value: `${counts.light}d`   },
-      { dot: "#FFC659", label: t.moderate ?? "Medium", value: `${counts.medium}d`  },
-      { dot: "#FF7473", label: t.serious  ?? "Heavy",  value: `${counts.heavy}d`   },
-      { dot: "#BE3830", label: t.veryHigh ?? "Extreme",value: `${counts.extreme}d` },
+      { dot: "#4CC189", icon: "/icons/ico_intensity_mild.png",     label: t.mild      ?? "Mild",     value: `${counts.light} days`   },
+      { dot: "#FFC659", icon: "/icons/ico_intensity_moderate.png", label: t.moderate  ?? "Moderate", value: `${counts.medium} days`  },
+      { dot: "#FF7473", icon: "/icons/ico_intensity_serious.png",  label: t.serious   ?? "Strong",   value: `${counts.heavy} days`   },
+      { dot: "#BE3830", icon: "/icons/ico_intensity_extreme.png",  label: t.veryHigh  ?? "Extreme",  value: `${counts.extreme} days` },
     ]),
-    { dot: "#7b68ee",          label: t.medication       ?? "Medication",    value: `${counts.medicineDays}d`, showKey: "medicine" },
-    { dot: "#4ab5c4",          label: t.physicalActivity ?? "Activity",      value: `${counts.activityDays}d`, showKey: "activity" },
+    { dot: "#7b68ee", icon: "/icons/ico_intensity_medicine.png", label: t.medication ?? "Medication", value: `${counts.medicineDays} days`, showKey: "medicine" },
+    { dot: "#4ab5c4", label: t.physicalActivity ?? "Activity",      value: `${counts.activityDays} days`, showKey: "activity" },
     ...(counts.activityAvgH ? [{ dot: "#4ab5c4", label: t.avgActivity ?? "Avg. duration", value: counts.activityAvgH, showKey: "activity" }] : []),
     ...(selectedField === "sexualPain" ? [
-      { dot: "#d97fd9", label: t.sexPreventedPartial ?? "Sex prev. (partial)", value: `${counts.sexPartial}d` },
-      { dot: "#b060c0", label: t.sexPreventedFull    ?? "Sex prev. (full)",    value: `${counts.sexFull}d` },
+      { dot: "#b060c0", icon: "/icons/ico_prevented.png", label: t.sexPreventedFull ?? "Sex prev. (full)", value: `${counts.sexFull} days` },
     ] : []),
   ].filter(({ showKey }) => !showKey || show[showKey]);
 
@@ -304,8 +306,6 @@ export default function MonthlySidebar({
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
-
-      {/* Panel header */}
       <div
         className="flex items-center justify-between px-4 py-3 flex-shrink-0"
         style={{ borderBottom: "1px solid rgba(201,112,96,0.12)", background: "rgba(201,112,96,0.03)" }}
@@ -324,8 +324,7 @@ export default function MonthlySidebar({
         )}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pt-7">
         {showingDetail ? (
           <DayDetailPanel t={t} record={selectedRecord} medicines={medicines} />
         ) : counts.filled === 0 ? (
@@ -335,8 +334,8 @@ export default function MonthlySidebar({
             </p>
           </div>
         ) : (
-          summaryRows.map(({ dot, label, value, valueColor }) => (
-            <SummaryRow key={label} dot={dot} label={label} value={value} valueColor={valueColor} />
+          summaryRows.map(({ dot, icon, label, value, valueColor }) => (
+            <SummaryRow key={label} dot={dot} icon={icon} label={label} value={value} valueColor={valueColor} />
           ))
         )}
       </div>
