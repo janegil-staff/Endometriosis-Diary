@@ -225,7 +225,7 @@ export default function MonthlySidebar({
         const score = (r) => {
           if (!selectedField) return combineScore(r);
           const v = r[selectedField] ?? 0;
-          if (isAbsent) return v === 0 ? 0 : v === 1 ? 1 : v === 2 ? 3 : 5;
+          if (isAbsent) return v === 0 ? 0 : v === 1 ? 1 : v === 2 ? 3 : 4;
           if (isSleep) {
             if (v === 0) return 0;
             if (v === 3) return 2;
@@ -288,7 +288,7 @@ export default function MonthlySidebar({
   const isSleepField  = selectedField === "sleepQuality";
 
   const summaryRows = [
-    { dot: "#6B3A2A", icon: "/icons/brown_ring.png", label: t.monthScore ?? "Month score", value: `${monthlyScore}` },
+    { dot: "#6B3A2A", icon: "/icons/brown_ring.svg", label: t.monthScore ?? "Month score", value: `${monthlyScore}` },
     // Minimal hidden for sleep and absent fields
     ...(!isSleepField && !isAbsentField ? [{ dot: "#4a8aa8", icon: "/icons/ico_intensity_no.png",       label: t.painNone ?? "None",     value: `${counts.minimal} days` }] : []),
     ...(isAbsentField ? [
@@ -302,7 +302,7 @@ export default function MonthlySidebar({
       { dot: "#4CC189", icon: "/icons/ico_intensity_mild.png",     label: t.mild      ?? "Mild",     value: `${counts.light} days`   },
       { dot: "#FFC659", icon: "/icons/ico_intensity_moderate.png", label: t.moderate  ?? "Moderate", value: `${counts.medium} days`  },
       { dot: "#FF7473", icon: "/icons/ico_intensity_serious.png",  label: t.serious   ?? "Strong",   value: `${counts.heavy} days`   },
-      { dot: "#BE3830", icon: "/icons/ico_intensity_extreme.png",  label: t.veryHigh  ?? "Extreme",  value: `${counts.extreme} days` },
+      ...(selectedField === "sexualPain" ? [] : [{ dot: "#BE3830", icon: "/icons/ico_intensity_extreme.png", label: t.veryHigh ?? "Extreme", value: `${counts.extreme} days` }]),
     ]),
     { dot: "#7b68ee", icon: "/icons/ico_intensity_medicine.png", label: t.medication ?? "Medication", value: `${counts.medicineDays} days`, showKey: "medicine" },
     ...(counts.totalActivityMins > 0 ? [{ dot: "#4ab5c4", icon: "/icons/ico_exercise.png", label: t.totalActivity ?? "Total activity", value: fmtMins(counts.totalActivityMins), showKey: "activity" }] : []),

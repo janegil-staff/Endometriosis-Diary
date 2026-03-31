@@ -44,7 +44,7 @@ function getScore(rec, fieldKey) {
     if (val === 0) return 0;
     if (val === 1) return 1; // no absence → blue
     if (val === 2) return 3; // partial → yellow
-    return 5;               // full → dark red
+    return 4;               // full → light red
   }
   // sleepQuality: 1=poor, 2=fair, 3=good — remap (inverted: good=low pain)
   // sleepQuality: 3=good, 2=moderate, 1=poor (but only if sleepHours>0, otherwise not recorded)
@@ -52,7 +52,7 @@ function getScore(rec, fieldKey) {
     if (val === 0) return 0;                          // not set
     if (val === 3) return 2;                          // good → green
     if (val === 2) return 3;                          // moderate → yellow
-    if (val === 1 && (rec.sleepHours ?? 0) > 0) return 5; // poor + actually slept → red
+    if (val === 1 && (rec.sleepHours ?? 0) > 0) return 4; // poor + actually slept → light red
     if (val === 1) return 1;                          // poor + no hours = not recorded → blue
     return 0;
   }
