@@ -1,279 +1,307 @@
 "use client";
-import { useEffect, useState, startTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useLang } from "@/context/LangContext";
 import CalendarPanel from "@/components/dashboard/CalendarPanel";
+import MonthlySidebar from "@/components/dashboard/MonthlySidebar";
 import DayDetailDrawer from "@/components/dashboard/DayDetailDrawer";
 import { translations } from "@/lib/translations";
 
+function parsePatientData() {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem("patientData");
+  return raw ? JSON.parse(raw) : null;
+}
+
+const CHECKBOXES = [
+  { key: "medicine", label: "Vis medisindager" },
+  { key: "note",     label: "Vis notater"      },
+  { key: "period",   label: "Vis menstruasjon" },
+  { key: "activity", label: "Vis trening"      },
+];
+
+function Checkbox({ checked, label, onToggle }) {
+  return (
+    <button onClick={onToggle} className="flex items-center gap-2 select-none text-left">
+      <div
+        className="flex items-center justify-center rounded flex-shrink-0 transition-all"
+        style={{
+          width: 14, height: 14,
+          background: checked ? "#c97060" : "transparent",
+          border: `1.5px solid ${checked ? "#c97060" : "rgba(201,112,96,0.4)"}`,
+        }}
+      >
+        {checked && (
+          <svg width="8" height="6" viewBox="0 0 9 7" fill="none">
+            <path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </div>
+      <span style={{ fontSize: 11, color: checked ? "#5a3a34" : "#b07a70", fontWeight: checked ? 600 : 400 }}>
+        {label}
+      </span>
+    </button>
+  );
+}
+
 export default function Dashboard() {
-  const router = useRouter();
+  const router   = useRouter();
+  const pathname = usePathname();
   const { lang } = useLang();
-  const t = translations[lang] ?? translations.en;
+  const t        = translations[lang] ?? translations.en;
 
-  const [mounted, setMounted] = useState(false);
-  const [patient, setPatient] = useState(null);
+  const [patient, setPatient]               = useState(() => parsePatientData());
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen]         = useState(false);
+  const [menuOpen, setMenuOpen]             = useState(false);
 
-  const [viewYear, setViewYear] = useState(null);
-  const [viewMonth, setViewMonth] = useState(null);
+  const now = new Date();
+  const [viewYear,  setViewYear]  = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth());
 
-  // Which field drives the calendar colours
   const [selectedField, setSelectedField] = useState("intensity");
-
   const [show, setShow] = useState({
-    period: true,
-    flareUp: true,
-    medicine: true,
-    note: true,
-    activity: true,
-    sexPrevented: true,
+    period: true, flareUp: true, medicine: true,
+    activity: true, sexPrevented: true, sleep: true, note: true,
   });
+  const toggleShow = (key) => setShow((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const toggleShow = (key) =>
-    setShow((prev) => ({ ...prev, [key]: !prev[key] }));
+  useEffect(() => { if (!patient) router.replace("/"); }, [patient, router]);
+  if (!patient) return null;
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem("patientData");
-    if (!raw) {
-      router.replace("/");
-      return;
-    }
-    const data = JSON.parse(raw);
-    startTransition(() => {
-      setPatient(data);
-      if (data.records?.length) {
-        const last = [...data.records]
-          .sort((a, b) => a.date.localeCompare(b.date))
-          .pop();
-        setSelectedRecord(last);
-        setViewYear(parseInt(last.date.slice(0, 4)));
-        setViewMonth(parseInt(last.date.slice(5, 7)) - 1);
-      }
-      setMounted(true);
-    });
-  }, [router]);
+  function handleDayClick(rec) {
+    setSelectedRecord(rec ?? null);
+    if (rec) setDrawerOpen(true);
+  }
 
-  const handleDayClick = (record) => {
-    setSelectedRecord(record);
-    setDrawerOpen(true);
-  };
+  const initials = patient.name
+    ? patient.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+    : "??";
 
-  if (!mounted || !patient) return null;
-
-  const NAV_ITEMS = [
-    { label: t.summaryTab ?? "Summary", href: "/summary" },
-    { label: t.logTab ?? "Log", href: "/log" },
+  const tabs = [
+    { label: t.calendarTab ?? "Calendar", href: "/dashboard" },
+    { label: t.summaryTab  ?? "Summary",  href: "/summary"   },
+    { label: t.logTab      ?? "Log",      href: "/log"       },
   ];
 
+  const sidebarProps = {
+    t,
+    records:         patient.records ?? [],
+    viewYear,
+    viewMonth,
+    show,
+    onToggleShow:    toggleShow,
+    selectedRecord,
+    medicines:       patient.medicines ?? [],
+    onClearSelection: () => setSelectedRecord(null),
+    selectedField,
+  };
+
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{
-        backgroundImage: "url('/background-endo.svg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-      }}
-    >
-      {/* Top bar */}
+    <div className="flex flex-col min-h-screen" style={{ background: "#fdf3f0" }}>
+
+      {/* ── Header ──────────────────────────────────────────────────── */}
       <header
-        className="flex items-center justify-between px-8 py-4 relative z-[100]"
+        className="flex-shrink-0 px-4 py-3 flex items-center justify-between relative z-20"
         style={{
-          background: "rgba(255,255,255,0.6)",
-          backdropFilter: "blur(14px)",
-          borderBottom: "1px solid rgba(201,112,96,0.15)",
+          background: "linear-gradient(135deg, #c97060 0%, #8b4038 100%)",
+          boxShadow: "0 2px 16px rgba(139,64,56,0.28)",
         }}
       >
         <div className="flex items-center gap-3">
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-            style={{ background: "#c97060" }}
+            className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
+            style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
           >
-            {(t.female ?? "F")[0]}
+            {initials}
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: "#5a3a34" }}>
-              {patient.age} · {t.female ?? "Female"}
+            <p className="font-bold text-white text-sm leading-tight">
+              {patient.name ?? t.title ?? "Endometriosis Diary"}
             </p>
-            <p className="text-xs" style={{ color: "#b07a70" }}>
-              {patient.records?.length ?? 0}{" "}
-              {t.registrations ?? "registrations"}
+            <p className="text-white/60 text-xs">
+              {patient.records?.length ?? 0} {t.entries ?? "entries"}
             </p>
           </div>
         </div>
 
-        {/* Desktop nav */}
-        <div className="hidden sm:flex items-center gap-2">
-          {NAV_ITEMS.map(({ label, href }) => (
+        <button
+          onClick={() => { sessionStorage.removeItem("patientData"); router.replace("/"); }}
+          className="hidden lg:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition-all"
+          style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          {t.logout ?? "Sign out"}
+        </button>
+
+        <button
+          className="lg:hidden w-8 h-8 flex flex-col gap-1.5 items-center justify-center rounded-lg"
+          style={{ background: "rgba(255,255,255,0.12)" }}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="block w-4 h-0.5 rounded" style={{ background: "#fff" }} />
+          ))}
+        </button>
+
+        {menuOpen && (
+          <div
+            className="absolute top-full right-4 mt-1 rounded-xl shadow-xl py-1 z-50 min-w-[160px] lg:hidden"
+            style={{ background: "#fff", border: "1px solid rgba(201,112,96,0.15)" }}
+          >
+            {tabs.map(({ label, href }) => (
+              <button
+                key={href}
+                onClick={() => { router.push(href); setMenuOpen(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 transition-colors"
+                style={{
+                  color: pathname === href ? "#c97060" : "#5a3a34",
+                  fontWeight: pathname === href ? 700 : 400,
+                  borderBottom: "1px solid rgba(201,112,96,0.08)",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+            <button
+              onClick={() => { sessionStorage.removeItem("patientData"); router.replace("/"); }}
+              className="w-full text-left px-4 py-2.5 text-sm"
+              style={{ color: "#b07a70" }}
+            >
+              {t.logout ?? "Sign out"}
+            </button>
+          </div>
+        )}
+      </header>
+
+      {/* ── Tab bar ─────────────────────────────────────────────────── */}
+      <div
+        className="flex border-b flex-shrink-0"
+        style={{ background: "#fff", borderColor: "rgba(201,112,96,0.18)" }}
+      >
+        {tabs.map(({ label, href }) => {
+          const active = pathname === href;
+          return (
             <button
               key={href}
               onClick={() => router.push(href)}
-              className="text-xs px-4 py-1.5 rounded-full font-semibold transition-all hover:opacity-80"
+              className="flex-1 lg:flex-none lg:px-8 py-3 text-sm font-bold transition-colors"
               style={{
-                background: "rgba(201,112,96,0.08)",
-                color: "#c97060",
-                border: "1px solid rgba(201,112,96,0.2)",
+                color: active ? "#c97060" : "#c9a098",
+                borderBottom: active ? "2px solid #c97060" : "2px solid transparent",
               }}
             >
               {label}
             </button>
-          ))}
-          <button
-            onClick={() => {
-              sessionStorage.removeItem("patientData");
-              localStorage.removeItem("sessionStartAt");
-              router.replace("/");
-            }}
-            className="text-xs px-4 py-1.5 rounded-full font-semibold transition-all hover:opacity-80"
-            style={{
-              background: "rgba(201,112,96,0.12)",
-              color: "#c97060",
-              border: "1px solid rgba(201,112,96,0.3)",
-            }}
-          >
-            {t.logout ?? "Sign out"}
-          </button>
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Mobile hamburger */}
-        <div className="relative sm:hidden">
-          <button
-            onClick={() => setMenuOpen((o) => !o)}
-            className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-full transition-all"
-            style={{
-              background: menuOpen
-                ? "rgba(201,112,96,0.15)"
-                : "rgba(201,112,96,0.08)",
-              border: "1px solid rgba(201,112,96,0.25)",
-            }}
-          >
-            <span
-              className="block w-4 h-0.5 rounded-full transition-all"
-              style={{
-                background: "#c97060",
-                transform: menuOpen ? "translateY(4px) rotate(45deg)" : "none",
-              }}
-            />
-            <span
-              className="block w-4 h-0.5 rounded-full transition-all"
-              style={{ background: "#c97060", opacity: menuOpen ? 0 : 1 }}
-            />
-            <span
-              className="block w-4 h-0.5 rounded-full transition-all"
-              style={{
-                background: "#c97060",
-                transform: menuOpen
-                  ? "translateY(-8px) rotate(-45deg)"
-                  : "none",
-              }}
-            />
-          </button>
+      {/* ── Body ────────────────────────────────────────────────────── */}
+      <main className="flex-1 flex flex-col items-center overflow-y-auto p-4 lg:p-10 gap-4">
 
-          {menuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-[199]"
-                onClick={() => setMenuOpen(false)}
-              />
-              <div
-                className="absolute right-0 top-11 z-[200] rounded-2xl overflow-hidden flex flex-col"
-                style={{
-                  background: "rgba(255,255,255,0.97)",
-                  backdropFilter: "blur(16px)",
-                  border: "1px solid rgba(201,112,96,0.2)",
-                  boxShadow: "0 8px 32px rgba(201,112,96,0.15)",
-                  minWidth: 160,
-                }}
-              >
-                {[
-                  ...NAV_ITEMS.map(({ label, href }) => ({
-                    label,
-                    action: () => {
-                      setMenuOpen(false);
-                      router.push(href);
-                    },
-                    danger: false,
-                  })),
-                  {
-                    label: t.logout ?? "Sign out",
-                    action: () => {
-                      setMenuOpen(false);
-                      sessionStorage.removeItem("patientData");
-                      localStorage.removeItem("sessionStartAt");
-                      router.replace("/");
-                    },
-                    danger: true,
-                  },
-                ].map(({ label, action, danger }) => (
-                  <button
-                    key={label}
-                    onClick={action}
-                    className="text-left px-5 py-3 text-sm font-semibold transition-all hover:bg-black/5"
-                    style={{
-                      color: danger ? "#b91c1c" : "#c97060",
-                      borderBottom: "1px solid rgba(201,112,96,0.08)",
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </header>
-
-      {/* Body */}
-      <main className="flex-1 flex items-start justify-center px-4 py-8">
+        {/*
+          Card:
+          - Mobile:  column → [calendar + checkboxes] / [divider] / [summary]
+          - Desktop: row    → [calendar + checkboxes] | [divider] | [summary 220px]
+        */}
         <div
-          className="rounded-2xl shadow-xl w-full"
+          className="flex flex-row w-full"
           style={{
-            background: "rgba(255,255,255,0.88)",
-            backdropFilter: "blur(16px)",
-            border: "1px solid rgba(201,112,96,0.18)",
-            maxWidth: 480,
-            padding: "20px 18px",
+            maxWidth: 560,
+            background: "#fff",
+            borderRadius: 20,
+            border: "1px solid rgba(201,112,96,0.22)",
+            boxShadow: "0 20px 80px rgba(139,64,56,0.18), 0 8px 32px rgba(139,64,56,0.12)",
+            overflow: "hidden",
           }}
         >
-          <h1
-            className="text-center text-xl font-bold mb-4"
-            style={{
-              color: "#c97060",
-              fontFamily: "'Playfair Display', Georgia, serif",
-            }}
-          >
-            {t.title ?? "Endometriosis Diary"}
-          </h1>
 
-          <CalendarPanel
-            t={t}
-            records={patient.records}
-            medicines={patient.medicines}
-            onDayClick={handleDayClick}
-            selectedDate={selectedRecord?.date}
-            show={show}
-            onToggleShow={toggleShow}
-            viewYear={viewYear}
-            viewMonth={viewMonth}
-            onViewChange={(y, m) => {
-              setViewYear(y);
-              setViewMonth(m);
-            }}
-            selectedField={selectedField}
-            onFieldChange={setSelectedField}
+          {/* ── Left: calendar + checkboxes ─────────────────────────── */}
+          <div className="flex flex-col flex-1" style={{ minWidth: 0 }}>
+
+            {/* Calendar */}
+            <div style={{ padding: "28px 24px 16px" }}>
+              <CalendarPanel
+                t={t}
+                records={patient.records ?? []}
+                onDayClick={handleDayClick}
+                selectedDate={selectedRecord?.date}
+                viewYear={viewYear}
+                viewMonth={viewMonth}
+                onViewChange={(y, m) => { setViewYear(y); setViewMonth(m); }}
+                show={show}
+                onToggleShow={toggleShow}
+                selectedField={selectedField}
+                onFieldChange={setSelectedField}
+              />
+            </div>
+
+            {/* Checkboxes */}
+            <div
+              style={{
+                padding: "12px 24px 20px",
+                borderTop: "1px solid rgba(201,112,96,0.12)",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "8px 12px",
+              }}
+            >
+              {CHECKBOXES.map(({ key, label }) => (
+                <Checkbox
+                  key={key}
+                  checked={show[key] ?? true}
+                  label={label}
+                  onToggle={() => toggleShow(key)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* ── Divider — vertical, desktop only ───────────────────── */}
+          <div
+            className="hidden lg:block flex-shrink-0"
+            style={{ width: 1, background: "rgba(201,112,96,0.12)", alignSelf: "stretch" }}
           />
+
+          {/* ── Right: monthly summary — desktop sidebar ────────────── */}
+          <div
+            className="hidden lg:block flex-shrink-0 overflow-y-auto"
+            style={{ width: 220 }}
+          >
+            <MonthlySidebar {...sidebarProps} />
+          </div>
+
+        </div>
+
+        {/* ── Mobile only: monthly summary below the card ─────────── */}
+        <div
+          className="lg:hidden w-full mt-4"
+          style={{
+            maxWidth: 560,
+            background: "#fff",
+            borderRadius: 20,
+            border: "1px solid rgba(201,112,96,0.22)",
+            boxShadow: "0 20px 80px rgba(139,64,56,0.18), 0 8px 32px rgba(139,64,56,0.12)",
+            overflow: "hidden",
+          }}
+        >
+          <MonthlySidebar {...sidebarProps} />
         </div>
       </main>
 
+      {/* ── Mobile drawer ───────────────────────────────────────────── */}
       <DayDetailDrawer
         t={t}
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => { setDrawerOpen(false); setSelectedRecord(null); }}
         record={selectedRecord}
-        medicines={patient.medicines}
+        medicines={patient.medicines ?? []}
         show={show}
       />
     </div>
