@@ -68,11 +68,22 @@ export default function Dashboard() {
     localStorage.setItem("endo_selectedField", val);
     setSelectedField(val);
   };
-  const [show, setShow] = useState({
-    period: false, flareUp: true, medicine: true,
-    activity: false, sexPrevented: true, sleep: true, note: true,
+  const [show, setShow] = useState(() => {
+    if (typeof window === "undefined") return {
+      period: false, flareUp: true, medicine: true,
+      activity: false, sexPrevented: true, sleep: true, note: true,
+    };
+    const saved = localStorage.getItem("endo_show");
+    return saved ? JSON.parse(saved) : {
+      period: false, flareUp: true, medicine: true,
+      activity: false, sexPrevented: true, sleep: true, note: true,
+    };
   });
-  const toggleShow = (key) => setShow((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleShow = (key) => setShow((prev) => {
+    const next = { ...prev, [key]: !prev[key] };
+    localStorage.setItem("endo_show", JSON.stringify(next));
+    return next;
+  });
 
   useEffect(() => { if (!patient) router.replace("/"); }, [patient, router]);
   if (!patient) return null;

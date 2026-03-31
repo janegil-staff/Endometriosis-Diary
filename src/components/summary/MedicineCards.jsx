@@ -1,8 +1,8 @@
 "use client";
-import { Card } from "./Card";
+import { Card } from "@/components/summary/Card";
 
-export function MedicineCard({ t, medList, recordsCount }) {
-  if (!medList.length) return null;
+export function MedicineCard({ t, medList = [], recordsCount }) {
+  if (!medList?.length) return null;
   return (
     <Card title={t.medicines ?? "Medicines"}>
       <div className="space-y-2 mt-1">
@@ -16,8 +16,13 @@ export function MedicineCard({ t, medList, recordsCount }) {
               </p>
             </div>
             <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(201,112,96,0.1)" }}>
-              <div className="h-full rounded-full"
-                style={{ width: `${Math.min((stats.count / Math.max(recordsCount, 1)) * 100, 100)}%`, background: "#c97060" }} />
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.min((stats.count / Math.max(recordsCount, 1)) * 100, 100)}%`,
+                  background: "#c97060",
+                }}
+              />
             </div>
           </div>
         ))}
@@ -26,25 +31,30 @@ export function MedicineCard({ t, medList, recordsCount }) {
   );
 }
 
-export function MedicineEffectivenessCard({ t, records }) {
-  const withMed    = records.filter((r) => r.acuteMedicines?.length > 0);
-  const withoutMed = records.filter((r) => !r.acuteMedicines?.length);
+export function MedicineEffectivenessCard({ t, records = [] }) {
+  const withMed    = (records ?? []).filter((r) => r.acuteMedicines?.length > 0);
+  const withoutMed = (records ?? []).filter((r) => !r.acuteMedicines?.length);
   if (!withMed.length) return null;
 
-  const avg = (arr) => arr.length
-    ? Math.round((arr.reduce((s, r) => s + (r.intensity ?? 1), 0) / arr.length) * 10) / 10
-    : null;
+  const avg = (arr) =>
+    arr.length
+      ? Math.round((arr.reduce((s, r) => s + (r.intensity ?? 1), 0) / arr.length) * 10) / 10
+      : null;
 
   const avgWith    = avg(withMed);
   const avgWithout = avg(withoutMed);
 
   const effectDist = [0, 1, 2, 3].map((e) => ({
-    label: e === 0 ? (t.noEffect ?? "None")
-         : e === 1 ? (t.mild     ?? "Low")
-         : e === 2 ? (t.moderate ?? "Medium")
-         :           (t.serious  ?? "Good"),
+    label:
+      e === 0 ? (t.noEffect ?? "None") :
+      e === 1 ? (t.mild     ?? "Low") :
+      e === 2 ? (t.moderate ?? "Medium") :
+                (t.serious  ?? "Good"),
     count: withMed.filter((r) => (r.effect ?? 0) === e).length,
-    color: e === 0 ? "#e0c0b8" : e === 1 ? "#FFC659" : e === 2 ? "#4CC189" : "#268E86",
+    color:
+      e === 0 ? "#e0c0b8" :
+      e === 1 ? "#FFC659" :
+      e === 2 ? "#4CC189" : "#268E86",
   }));
   const maxCount = Math.max(...effectDist.map((d) => d.count), 1);
 
@@ -69,12 +79,14 @@ export function MedicineEffectivenessCard({ t, records }) {
       <div className="space-y-1.5">
         {effectDist.map(({ label, count, color }) => (
           <div key={label} className="flex items-center gap-2">
-            <span className="text-xs w-14 shrink-0" style={{ color: "#7a5a54" }}>{label}</span>
-            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(201,112,96,0.1)" }}>
-              <div className="h-full rounded-full transition-all"
-                style={{ width: `${(count / maxCount) * 100}%`, background: color }} />
+            <span className="text-xs w-16 flex-shrink-0" style={{ color: "#b07a70" }}>{label}</span>
+            <div className="flex-1 rounded-full overflow-hidden" style={{ height: 6, background: "rgba(201,112,96,0.08)" }}>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${(count / maxCount) * 100}%`, background: color }}
+              />
             </div>
-            <span className="text-xs font-bold w-4 text-right" style={{ color }}>{count}</span>
+            <span className="text-xs w-4 text-right" style={{ color: "#b07a70" }}>{count}</span>
           </div>
         ))}
       </div>

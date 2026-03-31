@@ -1,79 +1,117 @@
 "use client";
-import { useEffect, useState, startTransition } from "react";
+import { useEffect, useState, startTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/context/LangContext";
 import { translations } from "@/lib/translations";
 import { parseInitialState } from "@/lib/summary/dateHelpers";
 import {
   buildPainTrend,
-  buildFlareData,
+  buildPeriodData,
   buildActivityData,
   buildSleepData,
   buildMedUsage,
 } from "@/lib/summary/summaryStats";
 import { SummaryHeader } from "@/components/summary/SummaryHeader";
 import {
-  OverviewCard,
   PainTrendCard,
-  FlareUpCard,
+  OverviewCard,
+  PeriodCard,
   ActivityCard,
   SleepCard,
   MedicineCard,
 } from "@/components/summary/SummaryCards";
 import { Card } from "@/components/summary/Card";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function buildMonthKeys(vy, vm, monthRange) {
+  const pad  = (n) => String(n).padStart(2, "0");
+  const keys = [];
+  for (let i = monthRange - 1; i >= 0; i--) {
+    const d = new Date(vy, vm - i, 1);
+    keys.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}`);
+  }
+  return keys;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function SummaryPage() {
   const router = useRouter();
   const { lang } = useLang();
   const t = translations[lang] ?? translations.en;
 
-  const [state, setState] = useState({ patient: null, viewYear: null, viewMonth: null });
-  const { patient, viewYear, viewMonth } = state;
+  const [state, setState] = useState({
+    patient:    null,
+    viewYear:   null,
+    viewMonth:  null,
+    monthRange: 1,
+  });
+
+  const { patient, viewYear, viewMonth, monthRange } = state;
 
   useEffect(() => {
     const parsed = parseInitialState();
     if (!parsed.patient) { router.replace("/"); return; }
-    startTransition(() => setState(parsed));
+    startTransition(() =>
+      setState((s) => ({ ...s, ...parsed, monthRange: s.monthRange }))
+    );
   }, [router]);
 
-  if (!patient) return null;
-
-  const allRecords = [...(patient.records ?? [])].sort((a, b) =>
-    a.date.localeCompare(b.date),
+  const allRecords = useMemo(
+    () => [...(patient?.records ?? [])].sort((a, b) => a.date.localeCompare(b.date)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [patient],
   );
 
-  const pad      = (n) => String(n).padStart(2, "0");
-  const vy       = viewYear  ?? new Date().getFullYear();
-  const vm       = viewMonth ?? new Date().getMonth();
-  const monthKey = `${vy}-${pad(vm + 1)}`;
-  const records  = allRecords.filter((r) => r.date.startsWith(monthKey));
+  const vy = viewYear  ?? new Date().getFullYear();
+  const vm = viewMonth ?? new Date().getMonth();
+
+  const monthKeys = buildMonthKeys(vy, vm, monthRange);
+
+  const records = useMemo(
+    () => allRecords.filter((r) => monthKeys.some((key) => r.date.startsWith(key))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allRecords, vy, vm, monthRange],
+  );
+
+  if (!patient) return null;
 
   const months = t.monthNames ?? [
     "January","February","March","April","May","June",
     "July","August","September","October","November","December",
   ];
 
-  const prevMonth = () =>
-    setState((s) =>
-      s.viewMonth === 0
-        ? { ...s, viewMonth: 11, viewYear: s.viewYear - 1 }
-        : { ...s, viewMonth: s.viewMonth - 1 },
-    );
-  const nextMonth = () =>
-    setState((s) =>
-      s.viewMonth === 11
-        ? { ...s, viewMonth: 0, viewYear: s.viewYear + 1 }
-        : { ...s, viewMonth: s.viewMonth + 1 },
-    );
+  const step = monthRange;
 
-  const hasPrev = allRecords.some((r) => r.date < monthKey);
-  const hasNext = allRecords.some((r) => r.date > monthKey + "-31");
+  const prevMonth = () =>
+    setState((s) => {
+      const d = new Date(
+        s.viewYear  ?? new Date().getFullYear(),
+        (s.viewMonth ?? new Date().getMonth()) - step,
+        1,
+      );
+      return { ...s, viewYear: d.getFullYear(), viewMonth: d.getMonth() };
+    });
+
+  const nextMonth = () =>
+    setState((s) => {
+      const d = new Date(
+        s.viewYear  ?? new Date().getFullYear(),
+        (s.viewMonth ?? new Date().getMonth()) + step,
+        1,
+      );
+      return { ...s, viewYear: d.getFullYear(), viewMonth: d.getMonth() };
+    });
+
+  const firstKey = monthKeys[0];
+  const lastKey  = monthKeys[monthKeys.length - 1];
+  const hasPrev  = allRecords.some((r) => r.date < firstKey);
+  const hasNext  = allRecords.some((r) => r.date.slice(0, 7) > lastKey);
 
   const painTrend    = buildPainTrend(records, t);
-  const flareData    = buildFlareData(records, t);
+  const periodData   = buildPeriodData(records);
   const activityData = buildActivityData(records, t);
   const sleepData    = buildSleepData(records);
-  const medList      = buildMedUsage(records, patient);
+  const medList      = buildMedUsage(records, patient.medicines ?? []);
 
   return (
     <div
@@ -93,9 +131,12 @@ export default function SummaryPage() {
         hasPrev={hasPrev}
         hasNext={hasNext}
         recordsCount={records.length}
+        monthRange={monthRange}
+        onRangeChange={(n) => setState((s) => ({ ...s, monthRange: n }))}
         onBack={() => router.push("/dashboard")}
         onPrev={prevMonth}
         onNext={nextMonth}
+        allRecords={allRecords}
       />
 
       <main className="flex-1 px-4 sm:px-6 py-6 max-w-4xl mx-auto w-full pb-16">
@@ -103,26 +144,46 @@ export default function SummaryPage() {
           className="grid gap-4"
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
         >
-          <OverviewCard t={t} records={records} />
-
-          {records.length === 0 && (
+          {records.length === 0 ? (
             <Card title={t.summaryTab ?? "Summary"}>
               <p className="text-sm text-center py-4" style={{ color: "#b07a70" }}>
-                {t.noEntries ?? "No entries this month."}
+                {t.noEntries ?? "No entries this period."}
               </p>
             </Card>
+          ) : (
+            <>
+
+              <OverviewCard t={t} records={records} />
+
+              <PainTrendCard
+                t={t}
+                painTrend={painTrend}
+                months={months}
+                vm={vm}
+                vy={vy}
+                monthRange={monthRange}
+              />
+
+              <PeriodCard
+                t={t}
+                periodData={periodData}
+                months={months}
+                vm={vm}
+                vy={vy}
+                monthRange={monthRange}
+              />
+
+              <ActivityCard t={t} activityData={activityData} />
+
+              <SleepCard t={t} sleepData={sleepData} />
+
+              <MedicineCard
+                t={t}
+                medList={medList}
+                recordsCount={records.length}
+              />
+            </>
           )}
-
-          <PainTrendCard t={t} painTrend={painTrend} months={months} vm={vm} vy={vy} />
-
-          <FlareUpCard t={t} flareData={flareData} months={months} vm={vm} vy={vy} />
-
-
-          <ActivityCard t={t} activityData={activityData} />
-
-          <SleepCard t={t} sleepData={sleepData} />
-
-          <MedicineCard t={t} medList={medList} recordsCount={records.length} />
         </div>
       </main>
     </div>

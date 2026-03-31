@@ -164,7 +164,7 @@ function DayDetailPanel({ t, record, medicines = [] }) {
               const totalMins = fromFields > 0 ? fromFields : (record.physicalActivity ?? 0);
               const h = Math.floor(totalMins / 60);
               const m = totalMins % 60;
-              return h > 0 ? (m > 0 ? `${h}t ${m}min` : `${h}t`) : `${m}min`;
+              const hStr = t.hour ?? 'h'; const mStr = t.minutes ?? 'min'; return h > 0 ? (m > 0 ? `${h}${hStr} ${m}${mStr}` : `${h}${hStr}`) : `${m}${mStr}`;
             })(),
             "#4ab5c4"
           )}
@@ -247,11 +247,15 @@ export default function MonthlySidebar({
         };
       })()),
       medicineDays: mrs.filter((r) => r.acuteMedicines?.length > 0).length,
+      totalActivityMins: mrs.reduce((s, r) => {
+        const fromFields = (r.physicalActivityHours ?? 0) * 60 + (r.physicalActivityMinutes ?? 0);
+        return s + (fromFields > 0 ? fromFields : (r.physicalActivity ?? 0));
+      }, 0),
       activityDays: mrs.filter((r) => {
         const mins = (r.physicalActivityHours ?? 0) * 60 + (r.physicalActivityMinutes ?? 0) + (r.physicalActivity ?? 0);
         return mins > 0;
       }).length,
-      activityAvgH: (() => {
+      activityAvgMins: (() => {
         const active = mrs.filter((r) => {
           const mins = (r.physicalActivityHours ?? 0) * 60 + (r.physicalActivityMinutes ?? 0) + (r.physicalActivity ?? 0);
           return mins > 0;
@@ -261,10 +265,7 @@ export default function MonthlySidebar({
           const fromFields = (r.physicalActivityHours ?? 0) * 60 + (r.physicalActivityMinutes ?? 0);
           return s + (fromFields > 0 ? fromFields : (r.physicalActivity ?? 0));
         }, 0);
-        const avgMins = Math.round(totalMins / active.length);
-        const h = Math.floor(avgMins / 60);
-        const m = avgMins % 60;
-        return h > 0 ? (m > 0 ? `${h}t ${m}min` : `${h}t`) : `${m}min`;
+        return Math.round(totalMins / active.length);
       })(),
       sleepPoor:  mrs.filter((r) => (r.sleepQuality ?? 0) === 1 && (r.sleepHours ?? 0) > 0).length,
       sexPartial: mrs.filter((r) => (r.sexualPrevented ?? 0) === 2).length,
@@ -274,11 +275,20 @@ export default function MonthlySidebar({
     return { counts, avgPain, daysInMonth, monthlyScore };
   }, [records, vy, vm, monthKey, selectedField]);
 
+  const fmtMins = (mins) => {
+    if (!mins) return null;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const hStr = t.hour ?? "h";
+    const mStr = t.minutes ?? "min";
+    return h > 0 ? (m > 0 ? `${h}${hStr} ${m}${mStr}` : `${h}${hStr}`) : `${m}${mStr}`;
+  };
+
   const isAbsentField = selectedField === "absentWork" || selectedField === "absentSocial";
   const isSleepField  = selectedField === "sleepQuality";
 
   const summaryRows = [
-    { dot: "#6B3A2A", icon: "/icons/brown_ring.png", label: t.monthScore ?? "Month score", value: `${monthlyScore}` },
+    { dot: "#6B3A2A", icon: "/icons/brown_ring.svg", label: t.monthScore ?? "Month score", value: `${monthlyScore}` },
     // Minimal hidden for sleep and absent fields
     ...(!isSleepField && !isAbsentField ? [{ dot: "#4a8aa8", icon: "/icons/ico_intensity_no.png",       label: t.painNone ?? "None",     value: `${counts.minimal} days` }] : []),
     ...(isAbsentField ? [
@@ -295,8 +305,7 @@ export default function MonthlySidebar({
       { dot: "#BE3830", icon: "/icons/ico_intensity_extreme.png",  label: t.veryHigh  ?? "Extreme",  value: `${counts.extreme} days` },
     ]),
     { dot: "#7b68ee", icon: "/icons/ico_intensity_medicine.png", label: t.medication ?? "Medication", value: `${counts.medicineDays} days`, showKey: "medicine" },
-    { dot: "#4ab5c4", label: t.physicalActivity ?? "Activity",      value: `${counts.activityDays} days`, showKey: "activity" },
-    ...(counts.activityAvgH ? [{ dot: "#4ab5c4", label: t.avgActivity ?? "Avg. duration", value: counts.activityAvgH, showKey: "activity" }] : []),
+    ...(counts.totalActivityMins > 0 ? [{ dot: "#4ab5c4", icon: "/icons/ico_exercise.png", label: t.totalActivity ?? "Total activity", value: fmtMins(counts.totalActivityMins), showKey: "activity" }] : []),
     ...(selectedField === "sexualPain" ? [
       { dot: "#b060c0", icon: "/icons/ico_prevented.png", label: t.sexPreventedFull ?? "Sex prev. (full)", value: `${counts.sexFull} days` },
     ] : []),
@@ -324,7 +333,7 @@ export default function MonthlySidebar({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto pt-7">
+      <div className="flex-1 overflow-y-auto pt-3">
         {showingDetail ? (
           <DayDetailPanel t={t} record={selectedRecord} medicines={medicines} />
         ) : counts.filled === 0 ? (
