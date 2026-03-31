@@ -51,8 +51,10 @@ export default function SummaryPage() {
   useEffect(() => {
     const parsed = parseInitialState();
     if (!parsed.patient) { router.replace("/"); return; }
+    const saved = parseInt(localStorage.getItem("endo_summary_range") ?? "1", 10);
+    const monthRange = !isNaN(saved) && saved >= 1 && saved <= 12 ? saved : 1;
     startTransition(() =>
-      setState((s) => ({ ...s, ...parsed, monthRange: s.monthRange }))
+      setState((s) => ({ ...s, ...parsed, monthRange }))
     );
   }, [router]);
 
@@ -132,7 +134,7 @@ export default function SummaryPage() {
         hasNext={hasNext}
         recordsCount={records.length}
         monthRange={monthRange}
-        onRangeChange={(n) => setState((s) => ({ ...s, monthRange: n }))}
+        onRangeChange={(n) => { localStorage.setItem("endo_summary_range", n); setState((s) => ({ ...s, monthRange: n })); }}
         onBack={() => router.push("/dashboard")}
         onPrev={prevMonth}
         onNext={nextMonth}
