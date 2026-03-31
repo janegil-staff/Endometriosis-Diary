@@ -22,10 +22,12 @@ import {
   MedicineEffectivenessCard,
 } from "@/components/summary/SummaryCards";
 import { Card } from "@/components/summary/Card";
+import { SymptomHeatmapCard } from "@/components/summary/SymptomHeatmapCard";
+import { SymptomRadarCard } from "@/components/summary/SymptomRadarCard";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function buildMonthKeys(vy, vm, monthRange) {
-  const pad  = (n) => String(n).padStart(2, "0");
+  const pad = (n) => String(n).padStart(2, "0");
   const keys = [];
   for (let i = monthRange - 1; i >= 0; i--) {
     const d = new Date(vy, vm - i, 1);
@@ -41,9 +43,9 @@ export default function SummaryPage() {
   const t = translations[lang] ?? translations.en;
 
   const [state, setState] = useState({
-    patient:    null,
-    viewYear:   null,
-    viewMonth:  null,
+    patient: null,
+    viewYear: null,
+    viewMonth: null,
     monthRange: 1,
   });
 
@@ -51,27 +53,35 @@ export default function SummaryPage() {
 
   useEffect(() => {
     const parsed = parseInitialState();
-    if (!parsed.patient) { router.replace("/"); return; }
-    const saved = parseInt(localStorage.getItem("endo_summary_range") ?? "1", 10);
-    const monthRange = !isNaN(saved) && saved >= 1 && saved <= 12 ? saved : 1;
-    startTransition(() =>
-      setState((s) => ({ ...s, ...parsed, monthRange }))
+    if (!parsed.patient) {
+      router.replace("/");
+      return;
+    }
+    const saved = parseInt(
+      localStorage.getItem("endo_summary_range") ?? "1",
+      10,
     );
+    const monthRange = !isNaN(saved) && saved >= 1 && saved <= 12 ? saved : 1;
+    startTransition(() => setState((s) => ({ ...s, ...parsed, monthRange })));
   }, [router]);
 
   const allRecords = useMemo(
-    () => [...(patient?.records ?? [])].sort((a, b) => a.date.localeCompare(b.date)),
+    () =>
+      [...(patient?.records ?? [])].sort((a, b) =>
+        a.date.localeCompare(b.date),
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [patient],
   );
 
-  const vy = viewYear  ?? new Date().getFullYear();
+  const vy = viewYear ?? new Date().getFullYear();
   const vm = viewMonth ?? new Date().getMonth();
 
   const monthKeys = buildMonthKeys(vy, vm, monthRange);
 
   const records = useMemo(
-    () => allRecords.filter((r) => monthKeys.some((key) => r.date.startsWith(key))),
+    () =>
+      allRecords.filter((r) => monthKeys.some((key) => r.date.startsWith(key))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [allRecords, vy, vm, monthRange],
   );
@@ -79,8 +89,18 @@ export default function SummaryPage() {
   if (!patient) return null;
 
   const months = t.monthNames ?? [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const step = monthRange;
@@ -88,7 +108,7 @@ export default function SummaryPage() {
   const prevMonth = () =>
     setState((s) => {
       const d = new Date(
-        s.viewYear  ?? new Date().getFullYear(),
+        s.viewYear ?? new Date().getFullYear(),
         (s.viewMonth ?? new Date().getMonth()) - step,
         1,
       );
@@ -98,7 +118,7 @@ export default function SummaryPage() {
   const nextMonth = () =>
     setState((s) => {
       const d = new Date(
-        s.viewYear  ?? new Date().getFullYear(),
+        s.viewYear ?? new Date().getFullYear(),
         (s.viewMonth ?? new Date().getMonth()) + step,
         1,
       );
@@ -106,15 +126,15 @@ export default function SummaryPage() {
     });
 
   const firstKey = monthKeys[0];
-  const lastKey  = monthKeys[monthKeys.length - 1];
-  const hasPrev  = allRecords.some((r) => r.date < firstKey);
-  const hasNext  = allRecords.some((r) => r.date.slice(0, 7) > lastKey);
+  const lastKey = monthKeys[monthKeys.length - 1];
+  const hasPrev = allRecords.some((r) => r.date < firstKey);
+  const hasNext = allRecords.some((r) => r.date.slice(0, 7) > lastKey);
 
-  const painTrend    = buildPainTrend(records, t);
-  const periodData   = buildPeriodData(records);
+  const painTrend = buildPainTrend(records, t);
+  const periodData = buildPeriodData(records);
   const activityData = buildActivityData(records, t);
-  const sleepData    = buildSleepData(records);
-  const medList      = buildMedUsage(records, patient.medicines ?? []);
+  const sleepData = buildSleepData(records);
+  const medList = buildMedUsage(records, patient.medicines ?? []);
 
   return (
     <div
@@ -135,7 +155,10 @@ export default function SummaryPage() {
         hasNext={hasNext}
         recordsCount={records.length}
         monthRange={monthRange}
-        onRangeChange={(n) => { localStorage.setItem("endo_summary_range", n); setState((s) => ({ ...s, monthRange: n })); }}
+        onRangeChange={(n) => {
+          localStorage.setItem("endo_summary_range", n);
+          setState((s) => ({ ...s, monthRange: n }));
+        }}
         onBack={() => router.push("/dashboard")}
         onPrev={prevMonth}
         onNext={nextMonth}
@@ -145,18 +168,27 @@ export default function SummaryPage() {
       <main className="flex-1 px-4 sm:px-6 py-6 max-w-4xl mx-auto w-full pb-16">
         <div
           className="grid gap-4"
-          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
+          style={{
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          }}
         >
           {records.length === 0 ? (
             <Card title={t.summaryTab ?? "Summary"}>
-              <p className="text-sm text-center py-4" style={{ color: "#b07a70" }}>
+              <p
+                className="text-sm text-center py-4"
+                style={{ color: "#b07a70" }}
+              >
                 {t.noEntries ?? "No entries this period."}
               </p>
             </Card>
           ) : (
             <>
               <OverviewCard t={t} records={records} />
-
+              <MedicineEffectivenessCard
+                t={t}
+                records={records}
+                medicines={patient.medicines ?? []}
+              />
               <PainTrendCard
                 t={t}
                 painTrend={painTrend}
@@ -166,24 +198,12 @@ export default function SummaryPage() {
                 monthRange={monthRange}
               />
 
-              <PeriodCard
-                t={t}
-                periodData={periodData}
-                months={months}
-                vm={vm}
-                vy={vy}
-                monthRange={monthRange}
-              />
+              <SymptomHeatmapCard t={t} records={records} />
+        
 
               <ActivityCard t={t} activityData={activityData} />
 
               <SleepCard t={t} sleepData={sleepData} />
-
-              <MedicineEffectivenessCard
-                t={t}
-                records={records}
-                medicines={patient.medicines ?? []}
-              />
             </>
           )}
         </div>

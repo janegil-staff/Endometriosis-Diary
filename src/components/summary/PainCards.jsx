@@ -21,28 +21,30 @@ export function PainOverviewCard({ t, avgPain, recordsCount, light, medium, heav
   );
 }
 
-export function PainTrendCard({ t, painTrend, months, vm, vy }) {
+export function PainTrendCard({ t, painTrend, months, vm, vy, recordsCount = 0 }) {
   if (!painTrend.length) return null;
+  const thin = recordsCount > 31;
   return (
     <Card title={t.painScore ?? "Pain score"} subtitle={months[vm] + " " + vy}>
-      <LineChart data={painTrend} color="#c97060" min={1} max={5} height={90} />
+      <LineChart data={painTrend} color="#c97060" min={1} max={5} height={90} thin={thin} />
       <div className="flex justify-between mt-1">
         {painTrend.map((d, i) => (
-          <span key={i} style={{ color: "#b07a70", fontSize: 10 }}>{d.label}</span>
+          <span key={i} style={{ color: "#b07a70", fontSize: thin ? 8 : 10 }}>{d.label}</span>
         ))}
       </div>
     </Card>
   );
 }
 
-export function FlareUpCard({ t, flareData, months, vm, vy }) {
+export function FlareUpCard({ t, flareData, months, vm, vy, recordsCount = 0 }) {
   if (!flareData.length) return null;
+  const thin = recordsCount > 31;
   return (
     <Card title={t.exacerbation ?? "Flare-ups"} subtitle={months[vm] + " " + vy}>
-      <BarChart data={flareData} colorFn={() => "#f5a623"} height={80} />
+      <BarChart data={flareData} colorFn={() => "#f5a623"} height={80} thin={thin} />
       <div className="flex justify-between mt-1">
         {flareData.map((d, i) => (
-          <span key={i} style={{ color: "#b07a70", fontSize: 10 }}>{d.label}</span>
+          <span key={i} style={{ color: "#b07a70", fontSize: thin ? 8 : 10 }}>{d.label}</span>
         ))}
       </div>
     </Card>
