@@ -204,6 +204,7 @@ export default function SummaryPage() {
               <ActivityCard t={t} activityData={activityData} />
 
               <SleepCard t={t} sleepData={sleepData} />
+              
             </>
           )}
         </div>
