@@ -168,9 +168,9 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst })
           {(record.absentWork >= 2 || record.absentSocial >= 2) && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: "#fff4ed", border: "1px solid #fdc99a" }}>
               <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
-                {record.absentWork >= 2 && (t.absentWork ?? "Absent from work")}
+                {record.absentWork >= 2 && (t.fieldAbsentWork ?? "Absent from work")}
                 {record.absentWork >= 2 && record.absentSocial >= 2 && " · "}
-                {record.absentSocial >= 2 && (t.absentSocial ?? "Absent from social life")}
+                {record.absentSocial >= 2 && (t.fieldAbsentSocial ?? "Absent from social life")}
               </span>
             </div>
           )}

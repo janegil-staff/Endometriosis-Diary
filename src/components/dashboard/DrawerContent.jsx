@@ -138,8 +138,8 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full" style={{ background: "#e05a5a" }} />
                 <span className="text-xs" style={{ color: "#7a5a54" }}>
-                  {t.absentWork ?? "Absent from work"}
-                  {record.absentWork === 3 ? ` (${t.full ?? "full day"})` : ` (${t.partial ?? "partial"})`}
+                  {t.fieldAbsentWork ?? "Absent from work"}
+                  {record.absentWork === 3 ? ` (${t.full ?? "full"})` : ` (${t.partial ?? "partial"})`}
                 </span>
               </div>
             )}
@@ -147,8 +147,8 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full" style={{ background: "#f5a623" }} />
                 <span className="text-xs" style={{ color: "#7a5a54" }}>
-                  {t.absentSocial ?? "Absent from social life"}
-                  {record.absentSocial === 3 ? ` (${t.full ?? "full day"})` : ` (${t.partial ?? "partial"})`}
+                  {t.fieldAbsentSocial ?? "Absent from social life"}
+                  {record.absentSocial === 3 ? ` (${t.full ?? "full"})` : ` (${t.partial ?? "partial"})`}
                 </span>
               </div>
             )}
