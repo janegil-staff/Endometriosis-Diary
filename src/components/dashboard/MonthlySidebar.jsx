@@ -288,7 +288,7 @@ export default function MonthlySidebar({
   const isSleepField  = selectedField === "sleepQuality";
 
   const summaryRows = [
-    { dot: "#6B3A2A", icon: "/icons/brown_ring.svg", label: t.monthScore ?? "Month score", value: `${monthlyScore}` },
+    { dot: "#6B3A2A", icon: "/icons/brown_ring.png", label: t.monthScore ?? "Month score", value: `${monthlyScore}` },
     // Minimal hidden for sleep and absent fields
     ...(!isSleepField && !isAbsentField ? [{ dot: "#4a8aa8", icon: "/icons/ico_intensity_no.png",       label: t.painNone ?? "None",     value: `${counts.minimal} days` }] : []),
     ...(isAbsentField ? [

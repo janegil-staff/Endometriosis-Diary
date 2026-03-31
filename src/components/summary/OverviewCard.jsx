@@ -67,6 +67,25 @@ export function OverviewCard({ t, records }) {
       value: actDays,
       color: "#5cb85c",
     },
+    ...(sleepGood + sleepFair + sleepPoor > 0
+      ? [
+          {
+            label: t.sleepQualityTitle ?? "Sleep quality",
+            value:
+              sleepGood >= sleepFair && sleepGood >= sleepPoor
+                ? (t.good ?? "Good")
+                : sleepFair >= sleepPoor
+                  ? (t.moderate ?? "Moderate")
+                  : (t.poor ?? "Poor"),
+            color:
+              sleepGood >= sleepFair && sleepGood >= sleepPoor
+                ? "#4CC189"
+                : sleepFair >= sleepPoor
+                  ? "#FFC659"
+                  : "#FF7473",
+          },
+        ]
+      : []),
     {
       label: (t.absentWork ?? "Absent work") + ` (${t.partial ?? "part"})`,
       value: absentWorkPartial,
@@ -87,19 +106,6 @@ export function OverviewCard({ t, records }) {
       value: absentSocialFull,
       color: absentSocialFull > 0 ? "#FF7473" : "#4CC189",
     },
-    ...((sleepGood + sleepFair + sleepPoor) > 0 ? [{
-      label: t.sleepQualityTitle ?? "Sleep quality",
-      value: sleepGood >= sleepFair && sleepGood >= sleepPoor
-        ? (t.good     ?? "Good")
-        : sleepFair >= sleepPoor
-          ? (t.moderate ?? "Moderate")
-          : (t.poor     ?? "Poor"),
-      color: sleepGood >= sleepFair && sleepGood >= sleepPoor
-        ? "#4CC189"
-        : sleepFair >= sleepPoor
-          ? "#FFC659"
-          : "#FF7473",
-    }] : []),
   ];
 
   return (
