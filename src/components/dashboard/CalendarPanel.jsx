@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 
 function scoreBg(score) {
   if (!score || score < 1) return "#fff";
-  if (score <= 1) return "#d6eef8";
+  if (score <= 1) return "#6aaac8";
   if (score <= 2) return "#4CC189";
   if (score <= 3) return "#FFC659";
   if (score <= 4) return "#FF7473";
@@ -13,7 +13,7 @@ function scoreBg(score) {
 }
 function scoreText(score) {
   if (!score || score < 1) return "#000";
-  if (score <= 1) return "#4a8aa8";
+  if (score <= 1) return "#fff";
   if (score <= 2) return "#1a4a32";
   if (score <= 3) return "#4a3800";
   return "#fff";
@@ -38,7 +38,25 @@ const FIELDS = [
 function getScore(rec, fieldKey) {
   if (!rec) return 0;
   const val = rec[fieldKey] ?? 0;
-  return typeof val === "boolean" ? (val ? 3 : 0) : val;
+  if (typeof val === "boolean") return val ? 3 : 0;
+  // absentWork / absentSocial use 1=none, 2=partial, 3=full — remap to pain scale
+  if (fieldKey === "absentWork" || fieldKey === "absentSocial") {
+    if (val === 0) return 0;
+    if (val === 1) return 1; // no absence → blue
+    if (val === 2) return 3; // partial → yellow
+    return 5;               // full → dark red
+  }
+  // sleepQuality: 1=poor, 2=fair, 3=good — remap (inverted: good=low pain)
+  // sleepQuality: 3=good, 2=moderate, 1=poor (but only if sleepHours>0, otherwise not recorded)
+  if (fieldKey === "sleepQuality") {
+    if (val === 0) return 0;                          // not set
+    if (val === 3) return 2;                          // good → green
+    if (val === 2) return 3;                          // moderate → yellow
+    if (val === 1 && (rec.sleepHours ?? 0) > 0) return 5; // poor + actually slept → red
+    if (val === 1) return 1;                          // poor + no hours = not recorded → blue
+    return 0;
+  }
+  return val;
 }
 
 // ── DayCell ───────────────────────────────────────────────────────────────────

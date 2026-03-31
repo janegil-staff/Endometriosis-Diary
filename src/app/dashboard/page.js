@@ -60,10 +60,18 @@ export default function Dashboard() {
   const [viewYear,  setViewYear]  = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
 
-  const [selectedField, setSelectedField] = useState("intensity");
+  const [selectedField, setSelectedField] = useState(() =>
+    typeof window !== "undefined"
+      ? (localStorage.getItem("endo_selectedField") ?? "intensity")
+      : "intensity"
+  );
+  const setSelectedFieldPersist = (val) => {
+    localStorage.setItem("endo_selectedField", val);
+    setSelectedField(val);
+  };
   const [show, setShow] = useState({
-    period: true, flareUp: true, medicine: true,
-    activity: true, sexPrevented: true, sleep: true, note: true,
+    period: false, flareUp: true, medicine: true,
+    activity: false, sexPrevented: true, sleep: true, note: true,
   });
   const toggleShow = (key) => setShow((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -99,7 +107,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: "#fdf3f0" }}>
+    <div className="flex flex-col min-h-screen">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <header
@@ -179,29 +187,6 @@ export default function Dashboard() {
         )}
       </header>
 
-      {/* ── Tab bar ─────────────────────────────────────────────────── */}
-      <div
-        className="flex border-b flex-shrink-0"
-        style={{ background: "#fff", borderColor: "rgba(201,112,96,0.18)" }}
-      >
-        {tabs.map(({ label, href }) => {
-          const active = pathname === href;
-          return (
-            <button
-              key={href}
-              onClick={() => router.push(href)}
-              className="flex-1 lg:flex-none lg:px-8 py-3 text-sm font-bold transition-colors"
-              style={{
-                color: active ? "#c97060" : "#c9a098",
-                borderBottom: active ? "2px solid #c97060" : "2px solid transparent",
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
       {/* ── Body ────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col items-center overflow-y-auto p-4 lg:p-10 gap-4">
 
@@ -214,7 +199,6 @@ export default function Dashboard() {
           className="flex flex-row w-full"
           style={{
             maxWidth: 560,
-            background: "#fff",
             borderRadius: 20,
             border: "1px solid rgba(201,112,96,0.22)",
             boxShadow: "0 20px 80px rgba(139,64,56,0.18), 0 8px 32px rgba(139,64,56,0.12)",
@@ -223,7 +207,7 @@ export default function Dashboard() {
         >
 
           {/* ── Left: calendar + checkboxes ─────────────────────────── */}
-          <div className="flex flex-col flex-1" style={{ minWidth: 0 }}>
+          <div className="flex flex-col flex-1" style={{ minWidth: 0, background: "#fff" }}>
 
             {/* Calendar */}
             <div style={{ padding: "28px 24px 16px" }}>
@@ -238,7 +222,7 @@ export default function Dashboard() {
                 show={show}
                 onToggleShow={toggleShow}
                 selectedField={selectedField}
-                onFieldChange={setSelectedField}
+                onFieldChange={setSelectedFieldPersist}
               />
             </div>
 
@@ -261,18 +245,66 @@ export default function Dashboard() {
                 />
               ))}
             </div>
+
+            {/* Summary + Log links */}
+            <div
+              style={{
+                padding: "0 24px 20px",
+                display: "flex",
+                gap: 10,
+              }}
+            >
+              {[
+                {
+                  label: t.summaryTab ?? "Sammendrag",
+                  href: "/summary",
+                  icon: (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                  ),
+                  bg: "linear-gradient(135deg, #c97060 0%, #8b4038 100%)",
+                  shadow: "0 4px 16px rgba(139,64,56,0.35)",
+                },
+                {
+                  label: t.logTab ?? "Logg",
+                  href: "/log",
+                  icon: (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                  ),
+                  bg: "linear-gradient(135deg, #c97060 0%, #8b4038 100%)",
+                  shadow: "0 4px 16px rgba(139,64,56,0.35)",
+                },
+              ].map(({ label, href, icon, bg, shadow }) => (
+                <button
+                  key={href}
+                  onClick={() => router.push(href)}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all hover:opacity-90 active:scale-95"
+                  style={{
+                    fontSize: 13,
+                    color: "#fff",
+                    background: bg,
+                    boxShadow: shadow,
+                    border: "none",
+                  }}
+                >
+                  {icon}
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* ── Divider — vertical, desktop only ───────────────────── */}
-          <div
-            className="hidden lg:block flex-shrink-0"
-            style={{ width: 1, background: "rgba(201,112,96,0.12)", alignSelf: "stretch" }}
-          />
 
           {/* ── Right: monthly summary — desktop sidebar ────────────── */}
           <div
             className="hidden lg:block flex-shrink-0 overflow-y-auto"
-            style={{ width: 220 }}
+            style={{ width: 220, background: "#fff" }}
           >
             <MonthlySidebar {...sidebarProps} />
           </div>
@@ -284,7 +316,6 @@ export default function Dashboard() {
           className="lg:hidden w-full mt-4"
           style={{
             maxWidth: 560,
-            background: "#fff",
             borderRadius: 20,
             border: "1px solid rgba(201,112,96,0.22)",
             boxShadow: "0 20px 80px rgba(139,64,56,0.18), 0 8px 32px rgba(139,64,56,0.12)",

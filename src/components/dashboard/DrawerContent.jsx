@@ -45,14 +45,12 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
   const colors   = scoreColor(score);
   const usedMeds = resolveMedicines(record, medicines);
 
-  const showPeriod   = show?.period   ?? true;
-  const showFlareUp  = show?.flareUp  ?? true;
-  const showMedicine = show?.medicine ?? true;
-  const showNote     = show?.note     ?? true;
+  const showPeriod       = show?.period       ?? true;
+  const showMedicine     = show?.medicine     ?? true;
+  const showNote         = show?.note         ?? true;
   const showActivity     = show?.activity     ?? true;
   const showSexPrevented = show?.sexPrevented ?? true;
 
-  const isFlareUp    = record.intensity >= 4 || record.bowelMovementPain >= 4 || record.endoBelly >= 4;
   const hasActivity  = record.physicalActivity > 0;
   const hasSleep     = record.sleepHours > 0;
   const hasNote      = record.note?.trim().length > 0;
@@ -88,12 +86,6 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
               style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.border}` }}>
               {t.painScore ?? "Pain score"}: {score}
             </div>
-            {showFlareUp && isFlareUp && (
-              <div className="px-3 py-0.5 rounded-full text-xs font-bold"
-                style={{ background: "#fff7ed", color: "#c05400", border: "1px solid #fdc99a" }}>
-                {t.exacerbation ?? "Flare-up"}
-              </div>
-            )}
           </div>
         </div>
         <button onClick={onClose}
@@ -111,7 +103,6 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
         {visibleSymptoms.map(({ key, labelKey, fallback }) => {
           const val = record[key];
           if (!val || val < 2) return null;
-          // sleepQuality uses a 1-3 label scale, not a score bar
           if (key === "sleepQuality") {
             const sqLabel = val === 1 ? (t.poor ?? "Poor") : val === 2 ? (t.fair ?? "Fair") : (t.good ?? "Good");
             const sqColor = val === 1 ? "#FF7473" : val === 2 ? "#FFC659" : "#4CC189";
@@ -210,8 +201,10 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
             {record.sleepHours > 0 && (
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "#7a5a54" }}>{t.sleepQualityTitle ?? "Sleep quality"}</span>
-                <span className="text-xs font-bold" style={{ color: record.sleepQuality === 1 ? "#FF7473" : record.sleepQuality === 2 ? "#FFC659" : "#4CC189" }}>
-                  {record.sleepQuality === 1 ? (t.poor ?? "Poor") : record.sleepQuality === 2 ? (t.fair ?? "Fair") : (t.good ?? "Good")}
+                <span className="text-xs font-bold" style={{
+                  color: record.sleepQuality === 1 ? "#FF7473" : record.sleepQuality === 2 ? "#FFC659" : "#4CC189"
+                }}>
+                  {record.sleepQuality === 3 ? (t.good ?? "Good") : record.sleepQuality === 2 ? (t.moderate ?? "Moderate") : (t.poor ?? "Poor")}
                 </span>
               </div>
             )}
