@@ -173,14 +173,14 @@ export default function DrawerContent({ t, record, onClose, medicines, show }) {
       )}
 
       {/* Activity & sleep */}
-      {showActivity && (hasActivity || hasSleep) && (
+      {(showActivity && hasActivity || hasSleep) && (
         <div className="rounded-xl p-3 mb-3"
           style={{ background: "rgba(92,184,92,0.06)", border: "1px solid rgba(92,184,92,0.15)" }}>
           <p className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "#3a8a3a" }}>
             {t.physicalActivity ?? "Activity & sleep"}
           </p>
           <div className="space-y-1">
-            {hasActivity && (
+            {showActivity && hasActivity && (
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "#7a5a54" }}>{t.physicalActivity ?? "Activity"}</span>
                 <span className="text-xs font-bold" style={{ color: "#3a8a3a" }}>
