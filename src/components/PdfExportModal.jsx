@@ -47,9 +47,7 @@ function Toggle({ checked, onChange, label, color = "#c97060" }) {
           transition: "left 0.2s",
         }} />
       </div>
-      <span className="text-sm" style={{ color: checked ? "#5a3a34" : "#b07a70" }}>
-        {label}
-      </span>
+      <span className="text-sm" style={{ color: checked ? "#5a3a34" : "#b07a70" }}>{label}</span>
     </label>
   );
 }
@@ -57,9 +55,7 @@ function Toggle({ checked, onChange, label, color = "#c97060" }) {
 function DateInput({ label, value, onChange, min, max }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#b07a70" }}>
-        {label}
-      </label>
+      <label className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#b07a70" }}>{label}</label>
       <input
         type="date"
         value={value}
@@ -92,7 +88,6 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
   const [fields, setFields] = useState({
     painScore: true,
     symptoms:  true,
-    flareUp:   true,
     period:    true,
     medicines: true,
     activity:  true,
@@ -197,14 +192,12 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
       const scores     = filtered.map(combineScore);
       const painScores = scores.filter((v) => v > 1);
       const avgPain    = painScores.length ? Math.round(painScores.reduce((a, b) => a + b, 0) / painScores.length) : null;
-      const flareCount = filtered.filter((r) => r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4).length;
       const periodDays = filtered.filter((r) => r.period >= 2).length;
       const medDays    = filtered.filter((r) => r.acuteMedicines?.length > 0).length;
 
       const stats = [
         { label: t.daysRecorded  ?? "Days recorded",  value: String(filtered.length) },
         { label: t.painScore     ?? "Pain score",      value: avgPain != null ? String(avgPain) : "–" },
-        { label: t.exacerbation  ?? "Flare-ups",       value: String(flareCount) },
         { label: t.symptomPeriod ?? "Period days",     value: String(periodDays) },
         { label: t.medication    ?? "Medicine days",   value: String(medDays) },
       ];
@@ -261,11 +254,9 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
       const PAD_TOP  = 4.5;
       const PAD_BOT  = 4;
       const PAD_SIDE = 2;
-      const SEP_H    = 5.5;
 
       // ── Records ─────────────────────────────────────────────
       filtered.slice().reverse().forEach((r, idx) => {
-        // Year divider
         const year     = r.date.slice(0, 4);
         const prevYear = idx > 0 ? filtered[filtered.length - idx].date.slice(0, 4) : null;
         if (year !== prevYear) {
@@ -280,8 +271,6 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         }
 
         const score = combineScore(r);
-
-        // Score label including 1 = none
         const scoreLabel =
           score <= 1 ? (t.noPain     ?? "No pain")
           : score <= 2 ? (t.mild     ?? "Light")
@@ -289,7 +278,6 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
           : score <= 4 ? (t.serious  ?? "Heavy")
           :               (t.veryHigh ?? "Extreme");
 
-        // Score colour matching calendar exactly
         const scoreRgb =
           score <= 1 ? [214, 238, 248]
           : score <= 2 ? [76, 193, 137]
@@ -309,7 +297,6 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         const medText  = usedMeds.join(", ");
         const medSplit = showMeds && medText ? doc.splitTextToSize(medText, medW) : [];
 
-        const isFlareUp = fields.flareUp && (r.intensity >= 4 || r.bowelMovementPain >= 4 || r.endoBelly >= 4);
         const noteText  = fields.note && r.note?.trim() ? r.note.trim() : "";
         const noteSplit = noteText
           ? doc.splitTextToSize(`${t.note ?? "Note"}: ${noteText}`, CW - PAD_SIDE * 4)
@@ -326,15 +313,13 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         const medContentH  = medSplit.length > 0 ? medSplit.length * LINE_H : 0;
         const bodyContentH = Math.max(subContentH, medContentH, LINE_H * 2);
         const bodyH        = PAD_TOP + bodyContentH + PAD_BOT;
-        const exH          = isFlareUp ? SEP_H : 0;
         const noteH        = noteSplit.length > 0
           ? PAD_TOP + noteSplit.length * LINE_H + PAD_BOT * 0.5
           : 0;
-        const rowH = bodyH + exH + noteH;
+        const rowH = bodyH + noteH;
 
         checkY(rowH + 1);
 
-        // Row background — all rows faintly tinted, score 1 = light blue
         const blendFactor = score <= 1 ? 0.75 : 0.85;
         doc.setFillColor(
           Math.min(255, scoreRgb[0] + (255 - scoreRgb[0]) * blendFactor),
@@ -346,19 +331,13 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         doc.setDrawColor(220, 200, 195);
         doc.rect(ML, y, CW, rowH, "S");
 
-        Object.entries(COL).filter(([k]) => k !== "date").forEach(([, c]) => vline(c.x, y, y + bodyH + exH));
+        Object.entries(COL).filter(([k]) => k !== "date").forEach(([, c]) => vline(c.x, y, y + bodyH));
 
-        if (isFlareUp) {
-          doc.setFillColor(255, 250, 245);
-          doc.rect(ML, y + bodyH, CW, exH, "F");
-          doc.setLineWidth(0.08); doc.setDrawColor(220, 190, 180);
-          doc.line(ML + 1, y + bodyH, W - MR - 1, y + bodyH);
-        }
         if (noteSplit.length > 0) {
           doc.setFillColor(251, 250, 255);
-          doc.rect(ML, y + bodyH + exH, CW, noteH, "F");
+          doc.rect(ML, y + bodyH, CW, noteH, "F");
           doc.setLineWidth(0.08); doc.setDrawColor(215, 210, 230);
-          doc.line(ML + 1, y + bodyH + exH, W - MR - 1, y + bodyH + exH);
+          doc.line(ML + 1, y + bodyH, W - MR - 1, y + bodyH);
         }
 
         const ty = y + PAD_TOP;
@@ -372,7 +351,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         setFont(6.5, "bold", ink);
         doc.text(fmt, COL.date.x + PAD_SIDE, ty + LINE_H * 0.95);
 
-        // ── Pain score cell — always shown ─────────────────────
+        // ── Pain score cell ─────────────────────────────────────
         if (COL.pain) {
           setFont(13, "bold", ink);
           doc.text(String(score), COL.pain.x + COL.pain.w / 2, ty + 2, { align: "center" });
@@ -404,9 +383,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         // ── Medicine cell ───────────────────────────────────────
         if (COL.meds && medSplit.length > 0) {
           setFont(6.5, "normal", ink);
-          medSplit.forEach((ln, li) =>
-            doc.text(ln, COL.meds.x + PAD_SIDE, ty + li * LINE_H),
-          );
+          medSplit.forEach((ln, li) => doc.text(ln, COL.meds.x + PAD_SIDE, ty + li * LINE_H));
         }
 
         // ── Activity / sleep cell ───────────────────────────────
@@ -426,16 +403,9 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
           }
         }
 
-        // ── Flare-up band ───────────────────────────────────────
-        if (isFlareUp) {
-          const ey = y + bodyH;
-          setFont(6.5, "bold", [180, 100, 40]);
-          doc.text(`⚡ ${t.exacerbation ?? "Flare-up"}`, ML + PAD_SIDE + 1, ey + 3.8);
-        }
-
         // ── Note band ───────────────────────────────────────────
         if (noteSplit.length > 0) {
-          const ny = y + bodyH + exH;
+          const ny = y + bodyH;
           setFont(6.5, "italic", [120, 100, 160]);
           noteSplit.forEach((ln, li) =>
             doc.text(ln, ML + PAD_SIDE + 1, ny + PAD_TOP * 0.8 + li * LINE_H),
@@ -473,12 +443,11 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
       key: "painScore", label: t.painScore ?? "Pain score",
       children: [{ key: "symptoms", label: t.symptomLog ?? "All symptom fields" }],
     },
-    { key: "flareUp",   label: t.exacerbation    ?? "Flare-ups"     },
-    { key: "period",    label: t.symptomPeriod   ?? "Period"        },
-    { key: "medicines", label: t.medicines       ?? "Medicines"     },
-    { key: "activity",  label: t.physicalActivity ?? "Activity"     },
-    { key: "sleep",     label: t.symptomSleep    ?? "Sleep"         },
-    { key: "note",      label: t.note            ?? "Notes"         },
+    { key: "period",    label: t.symptomPeriod   ?? "Period"    },
+    { key: "medicines", label: t.medicines       ?? "Medicines" },
+    { key: "activity",  label: t.physicalActivity ?? "Activity" },
+    { key: "sleep",     label: t.symptomSleep    ?? "Sleep"     },
+    { key: "note",      label: t.note            ?? "Notes"     },
   ];
 
   return (
@@ -499,10 +468,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         }}
       >
         {/* Header */}
-        <div
-          className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: "1px solid rgba(201,112,96,0.12)" }}
-        >
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid rgba(201,112,96,0.12)" }}>
           <div>
             <p className="text-xs font-semibold tracking-widest uppercase mb-0.5" style={{ color: "#b07a70" }}>
               {t.downloadPdf ?? "Download PDF"}
@@ -515,9 +481,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-all"
             style={{ color: "#b07a70" }}
-          >
-            ✕
-          </button>
+          >✕</button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
@@ -540,9 +504,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
             <p className="text-xs mt-2" style={{ color: "#b07a70" }}>
               {filtered.length} {t.entries ?? "entries"}
               {filtered.length === 0 && (
-                <span className="ml-2" style={{ color: "#e05a5a" }}>
-                  — {t.noEntries ?? "No entries"}
-                </span>
+                <span className="ml-2" style={{ color: "#e05a5a" }}>— {t.noEntries ?? "No entries"}</span>
               )}
             </p>
           </div>
@@ -559,13 +521,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
                   {children && fields[key] && (
                     <div className="ml-10 mt-2 space-y-2">
                       {children.map((child) => (
-                        <Toggle
-                          key={child.key}
-                          checked={fields[child.key]}
-                          onChange={() => toggle(child.key)}
-                          label={child.label}
-                          color="#b07a70"
-                        />
+                        <Toggle key={child.key} checked={fields[child.key]} onChange={() => toggle(child.key)} label={child.label} color="#b07a70" />
                       ))}
                     </div>
                   )}
@@ -576,10 +532,7 @@ export default function PdfExportModal({ open, onClose, patient, t }) {
         </div>
 
         {/* Footer */}
-        <div
-          className="px-6 py-4 flex items-center justify-between gap-3"
-          style={{ borderTop: "1px solid rgba(201,112,96,0.12)" }}
-        >
+        <div className="px-6 py-4 flex items-center justify-between gap-3" style={{ borderTop: "1px solid rgba(201,112,96,0.12)" }}>
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-80"

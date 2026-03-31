@@ -2,7 +2,6 @@
 
 export function LogSearch({ t, search, onSearch }) {
   const legend = [
-    ["#f5a623", t.exacerbation  ?? "Flare-up"],
     ["#5bc0de", t.note          ?? "Note"],
     ["#7b68ee", t.medication    ?? "Medicine"],
     ["#e05a5a", t.symptomPeriod ?? "Period"],
