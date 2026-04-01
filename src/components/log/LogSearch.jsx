@@ -3,7 +3,7 @@
 export function LogSearch({ t, search, onSearch }) {
   return (
     <div className="px-6 pt-6 pb-2 max-w-3xl mx-auto w-full">
-      <input
+      {/* <input
         type="text"
         value={search}
         onChange={(e) => onSearch(e.target.value)}
@@ -23,7 +23,7 @@ export function LogSearch({ t, search, onSearch }) {
           e.target.style.borderColor = "rgba(201,112,96,0.2)";
           e.target.style.boxShadow = "none";
         }}
-      />
+      /> */}
     </div>
   );
 }

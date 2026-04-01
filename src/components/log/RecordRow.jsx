@@ -93,9 +93,20 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst, s
     t.severityStrong   ?? "Strong",
     t.severityExtreme  ?? "Extreme",
   ];
-  const severityLabel = SEVERITY_LABELS[(badgeScore ?? 1) - 1] ?? SEVERITY_LABELS[0];
 
-  const badgeLabel = severityLabel;
+  const isAbsenceField = selectedField === "absentWork" || selectedField === "absentSocial";
+  const rawAbsenceVal  = record[selectedField] ?? 0;
+
+  let badgeLabel;
+  if (isAbsenceField) {
+    badgeLabel = rawAbsenceVal === 3
+      ? (t.fullDay    ?? "Full day")
+      : rawAbsenceVal === 2
+      ? (t.partialDay ?? "Partial")
+      : null; // val 0 or 1 = not absent, hide badge
+  } else {
+    badgeLabel = SEVERITY_LABELS[(badgeScore ?? 1) - 1] ?? SEVERITY_LABELS[0];
+  }
 
   // ── Medicines ─────────────────────────────────────────────────────────────
   const usedMeds = (record.acuteMedicines ?? []).map((id, i) => {
@@ -173,7 +184,7 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst, s
           {hasActivity && (
             <span className="text-xs hidden sm:inline" style={{ color: "#b07a70" }}>🏃 {actLabel}</span>
           )}
-          {badgeScore >= 1 && (
+          {badgeScore >= 1 && badgeLabel && (
             <span
               className="text-xs font-bold px-2.5 py-0.5 rounded-full"
               style={{
@@ -275,28 +286,38 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst, s
           )}
 
           {/* Absence */}
-          {(record.absentWork >= 2 || record.absentSocial >= 2) && (
+          {(record.absentWork >= 1 || record.absentSocial >= 1) && (
             <div className="space-y-1.5">
-              {record.absentWork >= 2 && (
-                <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#fff4ed", border: "1px solid #fdc99a" }}>
-                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
-                    {t.fieldAbsentWork ?? "Absent from work"}
-                  </span>
-                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
-                    {record.absentWork === 3 ? (t.fullDay ?? "Full day") : (t.partialDay ?? "Partial day")}
-                  </span>
-                </div>
-              )}
-              {record.absentSocial >= 2 && (
-                <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#fff4ed", border: "1px solid #fdc99a" }}>
-                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
-                    {t.fieldAbsentSocial ?? "Absent from social life"}
-                  </span>
-                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
-                    {record.absentSocial === 3 ? (t.fullDay ?? "Full day") : (t.partialDay ?? "Partial day")}
-                  </span>
-                </div>
-              )}
+              {record.absentWork >= 1 && (() => {
+                const val = record.absentWork;
+                const label = val === 3 ? (t.fullDay ?? "Full day") : val === 2 ? (t.partialDay ?? "Partial") : (t.noAbsence ?? "None");
+                const color = val === 3 ? "#c05400" : val === 2 ? "#d97706" : "#7a5a54";
+                const bg    = val === 3 ? "#fff4ed" : val === 2 ? "#fffbeb" : "rgba(201,112,96,0.04)";
+                const border = val === 3 ? "#fdc99a" : val === 2 ? "#fde68a" : "rgba(201,112,96,0.12)";
+                return (
+                  <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: bg, border: `1px solid ${border}` }}>
+                    <span className="text-xs font-semibold" style={{ color: "#7a5a54" }}>
+                      {t.fieldAbsentWork ?? "Absent from work"}
+                    </span>
+                    <span className="text-xs font-semibold" style={{ color }}>{label}</span>
+                  </div>
+                );
+              })()}
+              {record.absentSocial >= 1 && (() => {
+                const val = record.absentSocial;
+                const label = val === 3 ? (t.fullDay ?? "Full day") : val === 2 ? (t.partialDay ?? "Partial") : (t.noAbsence ?? "None");
+                const color = val === 3 ? "#c05400" : val === 2 ? "#d97706" : "#7a5a54";
+                const bg    = val === 3 ? "#fff4ed" : val === 2 ? "#fffbeb" : "rgba(201,112,96,0.04)";
+                const border = val === 3 ? "#fdc99a" : val === 2 ? "#fde68a" : "rgba(201,112,96,0.12)";
+                return (
+                  <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: bg, border: `1px solid ${border}` }}>
+                    <span className="text-xs font-semibold" style={{ color: "#7a5a54" }}>
+                      {t.fieldAbsentSocial ?? "Absent from social life"}
+                    </span>
+                    <span className="text-xs font-semibold" style={{ color }}>{label}</span>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
