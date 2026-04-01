@@ -3,7 +3,7 @@ import { RecordRow } from "./RecordRow";
 
 export function RecordList({
   t, visible, filtered, patient, expandedDate,
-  onToggle, hasMore, sentinelRef, PAGE_SIZE,
+  onToggle, hasMore, sentinelRef, PAGE_SIZE, selectedField,
 }) {
   if (filtered.length === 0) {
     return (
@@ -15,7 +15,6 @@ export function RecordList({
     );
   }
 
-  // Group by year
   let currentYear = null;
 
   return (
@@ -58,6 +57,7 @@ export function RecordList({
                 expanded={expandedDate === record.date}
                 onToggle={() => onToggle(record.date)}
                 isFirst={idx === 0 || showYear}
+                selectedField={selectedField}
               />
             </div>
           );

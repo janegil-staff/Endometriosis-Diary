@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useLang } from "@/context/LangContext";
-import CalendarPanel from "@/components/dashboard/CalendarPanel";
+import CalendarPanel, { FIELDS } from "@/components/dashboard/CalendarPanel";
 import MonthlySidebar from "@/components/dashboard/MonthlySidebar";
 import DayDetailDrawer from "@/components/dashboard/DayDetailDrawer";
 import { translations } from "@/lib/translations";
@@ -68,6 +68,7 @@ export default function Dashboard() {
     localStorage.setItem("endo_selectedField", val);
     setSelectedField(val);
   };
+
   const [show, setShow] = useState(() => {
     if (typeof window === "undefined") return {
       period: false, flareUp: true, medicine: true,
@@ -84,6 +85,25 @@ export default function Dashboard() {
     localStorage.setItem("endo_show", JSON.stringify(next));
     return next;
   });
+
+  // ── Header dropdown state ─────────────────────────────────────────────────
+  const [headerDropdownOpen, setHeaderDropdownOpen] = useState(false);
+  const headerDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!headerDropdownOpen) return;
+    function handle(e) {
+      if (headerDropdownRef.current && !headerDropdownRef.current.contains(e.target)) {
+        setHeaderDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [headerDropdownOpen]);
+
+  const activeField = FIELDS.find((f) => f.key === selectedField) ?? FIELDS[0];
+  const activeLabel = t[activeField.tKey] ?? activeField.fallback;
+  // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => { if (!patient) router.replace("/"); }, [patient, router]);
   if (!patient) return null;
@@ -121,6 +141,7 @@ export default function Dashboard() {
           boxShadow: "0 2px 16px rgba(139,64,56,0.28)",
         }}
       >
+        {/* Left: avatar + name */}
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
@@ -138,7 +159,80 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Logout button — always visible */}
+        {/* Center: field selector dropdown */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2"
+          ref={headerDropdownRef}
+          style={{ zIndex: 30 }}
+        >
+          <button
+            onClick={() => setHeaderDropdownOpen((v) => !v)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all hover:opacity-90 active:scale-95"
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.25)",
+            }}
+          >
+            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "rgba(255,255,255,0.8)" }} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", whiteSpace: "nowrap" }}>
+              {activeLabel}
+            </span>
+            <svg
+              width="10" height="10" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round"
+              style={{
+                transform: headerDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.15s",
+                flexShrink: 0,
+              }}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+
+          {headerDropdownOpen && (
+            <div
+              className="absolute top-full mt-1 left-1/2 -translate-x-1/2 rounded-xl overflow-hidden"
+              style={{
+                background: "#fff",
+                border: "1px solid rgba(201,112,96,0.18)",
+                boxShadow: "0 8px 24px rgba(139,64,56,0.2)",
+                minWidth: 168,
+                zIndex: 50,
+              }}
+            >
+              {FIELDS.map((f) => {
+                const label    = t[f.tKey] ?? f.fallback;
+                const isActive = f.key === selectedField;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => { setSelectedFieldPersist(f.key); setHeaderDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2.5 flex items-center gap-2 transition-colors"
+                    style={{
+                      background: isActive ? "rgba(201,112,96,0.08)" : "transparent",
+                      borderBottom: "1px solid rgba(201,112,96,0.06)",
+                    }}
+                  >
+                    <div
+                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={{ background: isActive ? "#c97060" : "rgba(201,112,96,0.25)" }}
+                    />
+                    <span style={{
+                      fontSize: 11,
+                      color: isActive ? "#c97060" : "#7a5a54",
+                      fontWeight: isActive ? 700 : 400,
+                    }}>
+                      {label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Right: logout button */}
         <button
           onClick={() => { sessionStorage.removeItem("patientData"); router.replace("/"); }}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition-all"

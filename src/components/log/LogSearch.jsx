@@ -1,13 +1,6 @@
 "use client";
 
 export function LogSearch({ t, search, onSearch }) {
-  const legend = [
-    ["#5bc0de", t.note          ?? "Note"],
-    ["#7b68ee", t.medication    ?? "Medicine"],
-    ["#e05a5a", t.symptomPeriod ?? "Period"],
-    ["#5cb85c", t.physicalActivity ?? "Activity"],
-  ];
-
   return (
     <div className="px-6 pt-6 pb-2 max-w-3xl mx-auto w-full">
       <input
@@ -31,15 +24,6 @@ export function LogSearch({ t, search, onSearch }) {
           e.target.style.boxShadow = "none";
         }}
       />
-
-      <div className="flex flex-wrap gap-4 mt-3 justify-center">
-        {legend.map(([color, label]) => (
-          <div key={label} className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ background: color }} />
-            <span className="text-xs" style={{ color: "#7a5a54" }}>{label}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

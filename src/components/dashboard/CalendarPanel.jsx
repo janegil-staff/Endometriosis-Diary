@@ -22,7 +22,7 @@ function pad(n) { return String(n).padStart(2, "0"); }
 
 // ── field definitions ─────────────────────────────────────────────────────────
 
-const FIELDS = [
+export const FIELDS = [
   { key: "intensity",         tKey: "fieldIntensity",    fallback: "Total pain"       },
   { key: "bowelMovementPain", tKey: "fieldBowel",        fallback: "Bowel pain"       },
   { key: "urinationPain",     tKey: "fieldUrination",    fallback: "Urination pain"   },
@@ -39,21 +39,18 @@ function getScore(rec, fieldKey) {
   if (!rec) return 0;
   const val = rec[fieldKey] ?? 0;
   if (typeof val === "boolean") return val ? 3 : 0;
-  // absentWork / absentSocial use 1=none, 2=partial, 3=full — remap to pain scale
   if (fieldKey === "absentWork" || fieldKey === "absentSocial") {
     if (val === 0) return 0;
-    if (val === 1) return 1; // no absence → blue
-    if (val === 2) return 3; // partial → yellow
-    return 4;               // full → light red
+    if (val === 1) return 1;
+    if (val === 2) return 3;
+    return 4;
   }
-  // sleepQuality: 1=poor, 2=fair, 3=good — remap (inverted: good=low pain)
-  // sleepQuality: 3=good, 2=moderate, 1=poor (but only if sleepHours>0, otherwise not recorded)
   if (fieldKey === "sleepQuality") {
-    if (val === 0) return 0;                          // not set
-    if (val === 3) return 2;                          // good → green
-    if (val === 2) return 3;                          // moderate → yellow
-    if (val === 1 && (rec.sleepHours ?? 0) > 0) return 4; // poor + actually slept → light red
-    if (val === 1) return 1;                          // poor + no hours = not recorded → blue
+    if (val === 0) return 0;
+    if (val === 3) return 2;
+    if (val === 2) return 3;
+    if (val === 1 && (rec.sleepHours ?? 0) > 0) return 4;
+    if (val === 1) return 1;
     return 0;
   }
   return val;
@@ -65,12 +62,12 @@ function DayCell({
   day, rec, isToday, isSelected, onClick, fieldKey,
   showMedicine, showNote, showActivity, showPeriod, showSexPrevented,
 }) {
-  const score     = getScore(rec, fieldKey);
-  const hasPeriod   = showPeriod   && (rec?.period ?? 0) >= 2;
-  const hasMedicine = showMedicine && rec?.acuteMedicines?.length > 0;
-  const hasNote     = showNote     && rec?.note?.trim?.().length > 0;
-  const hasActivity      = showActivity     && (rec?.physicalActivity ?? 0) > 0;
-  const hasSexPrevented  = showSexPrevented && (rec?.sexualPrevented ?? 0) === 3;
+  const score          = getScore(rec, fieldKey);
+  const hasPeriod      = showPeriod       && (rec?.period ?? 0) >= 2;
+  const hasMedicine    = showMedicine     && rec?.acuteMedicines?.length > 0;
+  const hasNote        = showNote         && rec?.note?.trim?.().length > 0;
+  const hasActivity    = showActivity     && (rec?.physicalActivity ?? 0) > 0;
+  const hasSexPrevented = showSexPrevented && (rec?.sexualPrevented ?? 0) === 3;
 
   const bg = isSelected ? "#8b4038" : rec ? scoreBg(score) : "#fff";
   const tc = isSelected ? "#fff"    : rec ? scoreText(score) : "#000";
@@ -206,21 +203,7 @@ export default function CalendarPanel({
   selectedField = "intensity",
   onFieldChange,
 }) {
-  const fieldKey    = selectedField;
-  const setFieldKey = (k) => onFieldChange?.(k);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    if (!dropdownOpen) return;
-    function handle(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, [dropdownOpen]);
+  const fieldKey = selectedField;
 
   const now  = new Date();
   const vy   = viewYear  ?? now.getFullYear();
@@ -260,9 +243,6 @@ export default function CalendarPanel({
   for (let i = 0; i < firstDayOffset; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-  const activeField = FIELDS.find((f) => f.key === fieldKey) ?? FIELDS[0];
-  const activeLabel = t[activeField.tKey] ?? activeField.fallback;
-
   return (
     <div className="w-full">
 
@@ -297,67 +277,6 @@ export default function CalendarPanel({
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
-      </div>
-
-      {/* ── Field selector dropdown ───────────────────────────────────── */}
-      <div className="relative mb-4" ref={dropdownRef}>
-        <button
-          onClick={() => setDropdownOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all"
-          style={{
-            background: "rgba(201,112,96,0.07)",
-            border: "1px solid rgba(201,112,96,0.2)",
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{ background: "#c97060" }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#5a3a34" }}>
-              {activeLabel}
-            </span>
-          </div>
-          <svg
-            width="10" height="10" viewBox="0 0 24 24" fill="none"
-            stroke="#c97060" strokeWidth="2.5" strokeLinecap="round"
-            style={{ transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
-
-        {dropdownOpen && (
-          <div
-            className="absolute left-0 right-0 mt-1 rounded-xl overflow-hidden z-50"
-            style={{
-              background: "#fff",
-              border: "1px solid rgba(201,112,96,0.18)",
-              boxShadow: "0 8px 24px rgba(139,64,56,0.12)",
-            }}
-          >
-            {FIELDS.map((f) => {
-              const label    = t[f.tKey] ?? f.fallback;
-              const isActive = f.key === fieldKey;
-              return (
-                <button
-                  key={f.key}
-                  onClick={() => { setFieldKey(f.key); setDropdownOpen(false); }}
-                  className="w-full text-left px-3 py-2.5 flex items-center gap-2 transition-colors"
-                  style={{
-                    background: isActive ? "rgba(201,112,96,0.08)" : "transparent",
-                    borderBottom: "1px solid rgba(201,112,96,0.06)",
-                  }}
-                >
-                  <div
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                    style={{ background: isActive ? "#c97060" : "rgba(201,112,96,0.25)" }}
-                  />
-                  <span style={{ fontSize: 11, color: isActive ? "#c97060" : "#7a5a54", fontWeight: isActive ? 700 : 400 }}>
-                    {label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* ── Day-of-week letters ───────────────────────────────────────── */}

@@ -1,5 +1,6 @@
 "use client";
 import { combineScore, SCORE_COLOR } from "@/lib/log/logHelpers";
+import { FIELDS } from "@/components/dashboard/CalendarPanel";
 
 const SYMPTOM_FIELDS = [
   { key: "intensity",         labelKey: "symptomPain",       fallback: "Pelvic pain" },
@@ -20,6 +21,27 @@ const BAR_COLOR = (v) =>
   : v <= 4 ? "#FF7473"
   : "#BE3830";
 
+function getFieldScore(rec, fieldKey) {
+  if (!rec) return 0;
+  const val = rec[fieldKey] ?? 0;
+  if (typeof val === "boolean") return val ? 3 : 0;
+  if (fieldKey === "absentWork" || fieldKey === "absentSocial") {
+    if (val === 0) return 0;
+    if (val === 1) return 1;
+    if (val === 2) return 3;
+    return 4;
+  }
+  if (fieldKey === "sleepQuality") {
+    if (val === 0) return 0;
+    if (val === 3) return 2;
+    if (val === 2) return 3;
+    if (val === 1 && (rec.sleepHours ?? 0) > 0) return 4;
+    if (val === 1) return 1;
+    return 0;
+  }
+  return val;
+}
+
 function ScoreBar({ value, max = 5 }) {
   return (
     <div className="flex items-center gap-1.5">
@@ -28,6 +50,15 @@ function ScoreBar({ value, max = 5 }) {
       </div>
       <span className="text-xs font-semibold w-3 text-right tabular-nums" style={{ color: BAR_COLOR(value) }}>{value}</span>
     </div>
+  );
+}
+
+function EffectLabel({ value, t }) {
+  if (!value || value <= 0) return null;
+  const label = value === 1 ? (t.effectNone ?? "No effect") : value === 2 ? (t.effectMild ?? "Mild effect") : (t.effectStrong ?? "Strong effect");
+  const color = value === 3 ? "#4CC189" : value === 2 ? "#FFC659" : "#FF7473";
+  return (
+    <span className="text-xs font-semibold" style={{ color }}>{label}</span>
   );
 }
 
@@ -47,10 +78,26 @@ function formatSleep(hours, t) {
   return hours === 1 ? `1 ${t.hourSingular ?? "hour"}` : `${hours} ${t.hours ?? "hours"}`;
 }
 
-export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst }) {
-  const score = combineScore(record);
-  const c     = SCORE_COLOR(score);
+export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst, selectedField = "intensity" }) {
+  // ── Badge ─────────────────────────────────────────────────────────────────
+  const fieldDef    = FIELDS.find((f) => f.key === selectedField) ?? FIELDS[0];
+  const fieldScore  = getFieldScore(record, selectedField);
+  const fieldLabel  = t[fieldDef.tKey] ?? fieldDef.fallback;
+  const badgeScore  = fieldScore > 0 ? fieldScore : combineScore(record);
+  const badgeColors = SCORE_COLOR(badgeScore);
 
+  const SEVERITY_LABELS = [
+    t.severityNone     ?? "None",
+    t.severityMild     ?? "Mild",
+    t.severityModerate ?? "Moderate",
+    t.severityStrong   ?? "Strong",
+    t.severityExtreme  ?? "Extreme",
+  ];
+  const severityLabel = SEVERITY_LABELS[(badgeScore ?? 1) - 1] ?? SEVERITY_LABELS[0];
+
+  const badgeLabel = severityLabel;
+
+  // ── Medicines ─────────────────────────────────────────────────────────────
   const usedMeds = (record.acuteMedicines ?? []).map((id, i) => {
     const med = medicines?.find((m) => m.id === id);
     return {
@@ -61,7 +108,6 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst })
     };
   });
 
-  const hasPeriod   = record.period >= 2;
   const hasActivity = record.physicalActivity > 0;
   const hasSleep    = record.sleepHours > 0;
   const noteText    = record.note?.trim();
@@ -85,55 +131,119 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst })
     >
       {/* Compact row */}
       <button onClick={onToggle} className="w-full flex items-center justify-between px-4 py-3 text-left transition-all hover:bg-black/[0.015]">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="font-bold tabular-nums shrink-0" style={{ color: "#b07a70", fontSize: 10, minWidth: 28 }}>{dow}</span>
-          <span className="text-sm font-semibold shrink-0" style={{ color: "#7a5a54" }}>{fmt}</span>
-          <div className="flex gap-1 items-center">
-            {hasPeriod           && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e05a5a" }} />}
-            {noteText            && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5bc0de" }} />}
-            {usedMeds.length > 0 && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#7b68ee" }} />}
-            {hasActivity         && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#5cb85c" }} />}
+
+        {/* Left: date + subtitles */}
+        <div className="flex flex-col gap-0.5 min-w-0 flex-1 pr-3">
+          <div className="flex items-center gap-2">
+            <span className="font-bold tabular-nums shrink-0" style={{ color: "#b07a70", fontSize: 10, minWidth: 28 }}>{dow}</span>
+            <span className="text-sm font-semibold shrink-0" style={{ color: "#7a5a54" }}>{fmt}</span>
+            {record.period >= 2 && (
+              <span className="text-xs font-semibold" style={{ color: "#e05a5a" }}>
+                {t.symptomPeriod ?? "Period"}
+              </span>
+            )}
           </div>
+          {usedMeds.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap" style={{ paddingLeft: 36 }}>
+              <span className="text-xs" style={{ color: "#7b68ee" }}>
+                {usedMeds.map((m) => m.name).join(", ")}
+              </span>
+              {record.effect > 0 && <EffectLabel value={record.effect} t={t} />}
+            </div>
+          )}
+          {noteText && (
+            <p
+              className="text-xs"
+              style={{
+                color: "#7a9aaa",
+                paddingLeft: 36,
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {noteText}
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+
+        {/* Right: activity + score badge + chevron */}
+        <div className="flex items-center gap-2 shrink-0">
           {hasActivity && (
             <span className="text-xs hidden sm:inline" style={{ color: "#b07a70" }}>🏃 {actLabel}</span>
           )}
-          {score >= 1 && (
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full" style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
-              {t.painScore ?? "Pain"} {score}
+          {badgeScore >= 1 && (
+            <span
+              className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+              style={{
+                background: badgeColors.bg,
+                color: badgeColors.text,
+                border: `1px solid ${badgeColors.border}`,
+              }}
+            >
+              {badgeLabel}
             </span>
           )}
-          <span className="transition-transform text-xs" style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", color: "#b07a70", display: "inline-block" }}>▾</span>
+          <span
+            className="transition-transform text-xs"
+            style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", color: "#b07a70", display: "inline-block" }}
+          >
+            ▾
+          </span>
         </div>
       </button>
 
       {/* Expanded detail */}
       {expanded && (
         <div className="px-4 pb-4 space-y-4" style={{ borderTop: "1px solid rgba(201,112,96,0.1)", paddingTop: 14 }}>
-          {/* Symptom bars */}
+
+          {/* Symptom bars — selected field floated to top */}
           <div>
             <p className="text-xs font-semibold tracking-widest uppercase mb-2.5" style={{ color: "#b07a70" }}>
               {t.symptomLog ?? "Symptoms"}
             </p>
             <div className="space-y-2">
-              {SYMPTOM_FIELDS.map(({ key, labelKey, fallback }) => {
+              {[
+                ...(selectedField !== "intensity"
+                  ? SYMPTOM_FIELDS.filter((f) => f.key === selectedField)
+                  : []),
+                ...SYMPTOM_FIELDS.filter((f) =>
+                  selectedField !== "intensity" ? f.key !== selectedField : true
+                ),
+              ].map(({ key, labelKey, fallback }) => {
                 const val = record[key];
                 if (!val || val < 2) return null;
                 if (key === "sleepQuality" && !record.sleepHours) return null;
+
+                const isHighlighted = key === selectedField && selectedField !== "intensity";
+
                 if (key === "sleepQuality") {
                   const sqLabel = val === 1 ? (t.poor ?? "Poor") : val === 2 ? (t.fair ?? "Fair") : (t.good ?? "Good");
                   const sqColor = val === 1 ? "#FF7473" : val === 2 ? "#FFC659" : "#4CC189";
                   return (
-                    <div key={key} className="flex items-center gap-2">
-                      <span className="text-xs shrink-0" style={{ color: "#7a5a54", width: 130 }}>{t[labelKey] ?? fallback}</span>
+                    <div
+                      key={key}
+                      className="flex items-center gap-2"
+                      style={isHighlighted ? { background: "rgba(201,112,96,0.06)", borderRadius: 8, padding: "4px 6px", margin: "0 -6px" } : {}}
+                    >
+                      <span className="text-xs shrink-0" style={{ color: isHighlighted ? "#c97060" : "#7a5a54", width: 130, fontWeight: isHighlighted ? 600 : 400 }}>
+                        {t[labelKey] ?? fallback}
+                      </span>
                       <span className="text-xs font-bold" style={{ color: sqColor }}>{sqLabel}</span>
                     </div>
                   );
                 }
+
                 return (
-                  <div key={key} className="flex items-center gap-2">
-                    <span className="text-xs shrink-0" style={{ color: "#7a5a54", width: 130 }}>{t[labelKey] ?? fallback}</span>
+                  <div
+                    key={key}
+                    className="flex items-center gap-2"
+                    style={isHighlighted ? { background: "rgba(201,112,96,0.06)", borderRadius: 8, padding: "4px 6px", margin: "0 -6px" } : {}}
+                  >
+                    <span className="text-xs shrink-0" style={{ color: isHighlighted ? "#c97060" : "#7a5a54", width: 130, fontWeight: isHighlighted ? 600 : 400 }}>
+                      {t[labelKey] ?? fallback}
+                    </span>
                     <ScoreBar value={val} />
                   </div>
                 );
@@ -166,12 +276,27 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst })
 
           {/* Absence */}
           {(record.absentWork >= 2 || record.absentSocial >= 2) && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: "#fff4ed", border: "1px solid #fdc99a" }}>
-              <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
-                {record.absentWork >= 2 && (t.fieldAbsentWork ?? "Absent from work")}
-                {record.absentWork >= 2 && record.absentSocial >= 2 && " · "}
-                {record.absentSocial >= 2 && (t.fieldAbsentSocial ?? "Absent from social life")}
-              </span>
+            <div className="space-y-1.5">
+              {record.absentWork >= 2 && (
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#fff4ed", border: "1px solid #fdc99a" }}>
+                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
+                    {t.fieldAbsentWork ?? "Absent from work"}
+                  </span>
+                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
+                    {record.absentWork === 3 ? (t.fullDay ?? "Full day") : (t.partialDay ?? "Partial day")}
+                  </span>
+                </div>
+              )}
+              {record.absentSocial >= 2 && (
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#fff4ed", border: "1px solid #fdc99a" }}>
+                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
+                    {t.fieldAbsentSocial ?? "Absent from social life"}
+                  </span>
+                  <span className="text-xs font-semibold" style={{ color: "#c05400" }}>
+                    {record.absentSocial === 3 ? (t.fullDay ?? "Full day") : (t.partialDay ?? "Partial day")}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -191,6 +316,17 @@ export function RecordRow({ record, medicines, t, expanded, onToggle, isFirst })
                     </div>
                   </div>
                 ))}
+                {record.effect > 0 && (
+                  <div
+                    className="flex items-center justify-between px-3 pt-2"
+                    style={{ borderTop: "1px solid rgba(123,104,238,0.1)" }}
+                  >
+                    <span className="text-xs" style={{ color: "#7a5a54" }}>
+                      {t.medicineSatisfaction ?? "Effect"}
+                    </span>
+                    <EffectLabel value={record.effect} t={t} />
+                  </div>
+                )}
               </div>
             </div>
           )}

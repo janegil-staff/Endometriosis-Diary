@@ -25,6 +25,16 @@ export default function LogPage() {
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const sentinelRef = useRef(null);
 
+  const [selectedField, setSelectedField] = useState(() =>
+    typeof window !== "undefined"
+      ? (localStorage.getItem("endo_selectedField") ?? "intensity")
+      : "intensity"
+  );
+  const handleFieldChange = (val) => {
+    localStorage.setItem("endo_selectedField", val);
+    setSelectedField(val);
+  };
+
   const search = searchState.query;
   const visibleCount = searchState.visibleCount;
 
@@ -88,6 +98,8 @@ export default function LogPage() {
         filteredCount={filtered.length}
         onBack={() => router.push("/dashboard")}
         onPdfOpen={() => setPdfModalOpen(true)}
+        selectedField={selectedField}
+        onFieldChange={handleFieldChange}
       />
 
       <LogSearch t={t} search={search} onSearch={setSearch} />
@@ -103,8 +115,10 @@ export default function LogPage() {
           hasMore={hasMore}
           sentinelRef={sentinelRef}
           PAGE_SIZE={PAGE_SIZE}
+          selectedField={selectedField}
         />
       </main>
+
       <PdfExportModal
         open={pdfModalOpen}
         onClose={() => setPdfModalOpen(false)}
