@@ -72,7 +72,7 @@ export function monthRange(byDate) {
   return { first: { year: fy, month: fm - 1 }, last: { year: ly, month: lm - 1 } };
 }
 
-const fill = (text = "", values = {}) =>
+export const fill = (text = "", values = {}) =>
   Object.entries(values).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), text);
 
 // "1 day" / "5 days" from the texts (CAL_DAY_ONE / CAL_DAY_OTHER) and the language's plural rules
@@ -83,3 +83,76 @@ export function formatDays(t, locale, n) {
   } catch {}
   return fill(rule === "one" ? t.CAL_DAY_ONE : t.CAL_DAY_OTHER, { n });
 }
+
+// ---------- Ranges, symptoms and the log ----------
+
+export const keyOf = (d) => toDateKey(d.getFullYear(), d.getMonth(), d.getDate());
+export const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+export const startOfToday = () => {
+  const n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+};
+
+// Other symptoms the app asks about. 1 = none (also what the app saves when a question is
+// turned off), 2–5 = light to extreme. Counted as a "day with" from 2 and up.
+export const SYMPTOMS = [
+  { field: "endoBelly", key: "SYM_BLOATING" },
+  { field: "bowelMovementPain", key: "SYM_BOWEL" },
+  { field: "urinationPain", key: "SYM_URINATION" },
+  { field: "sexualPain", key: "SYM_SEXUAL_PAIN" },
+  { field: "fatigue", key: "SYM_FATIGUE" },
+  { field: "stress", key: "SYM_STRESS" },
+];
+export const LEVEL_KEYS = { 2: "CAL_LIGHT", 3: "CAL_MEDIUM", 4: "CAL_HEAVY", 5: "CAL_EXTREME" };
+export const ABSENCE_KEYS = { 2: "ABS_PARTIAL", 3: "ABS_ALL_DAY" };
+export const MOOD_KEYS = { 1: "MOOD_1", 2: "MOOD_2", 3: "MOOD_3", 4: "MOOD_4", 5: "MOOD_5" };
+export const SLEEP_KEYS = { 1: "SLEEP_Q_1", 2: "SLEEP_Q_2", 3: "SLEEP_Q_3" };
+export const EFFECT_KEYS = { 1: "EFFECT_1", 2: "EFFECT_2", 3: "EFFECT_3" };
+
+export const painLevel = (r) => Number(r?.intensity) || 0; // 0 = no registration
+export const isPainDay = (r) => painLevel(r) >= 2;
+export const lowMood = (r) => (Number(r?.emotion) || 0) >= 4; // 4 negative, 5 very negative
+
+// Numbers for `days` days from `start` (a Date) – used by the summary, the comparison and the log
+export function rangeStats(byDate, start, days) {
+  const s = {
+    registered: 0,
+    pain: 0,
+    severe: 0, // heavy or extreme
+    levels: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    sum: 0,
+    period: 0,
+    medication: 0,
+    absentWork: 0,
+    absentSocial: 0,
+    lowMood: 0,
+    symptoms: Object.fromEntries(SYMPTOMS.map((x) => [x.field, 0])),
+  };
+  for (let i = 0; i < days; i++) {
+    const r = byDate.get(keyOf(addDays(start, i)));
+    if (!r) continue;
+    s.registered += 1;
+    const level = painLevel(r);
+    if (s.levels[level] !== undefined) s.levels[level] += 1;
+    if (level >= 1) s.sum += level - 1;
+    if (level >= 2) s.pain += 1;
+    if (level >= 4) s.severe += 1;
+    if (hasBleeding(r)) s.period += 1;
+    if (hasMedication(r)) s.medication += 1;
+    if ((r.absentWork ?? 0) >= 2) s.absentWork += 1;
+    if ((r.absentSocial ?? 0) >= 2) s.absentSocial += 1;
+    if (lowMood(r)) s.lowMood += 1;
+    for (const x of SYMPTOMS) if ((r[x.field] ?? 0) >= 2) s.symptoms[x.field] += 1;
+  }
+  return s;
+}
+
+// ISO week number (weeks start on Monday)
+export function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - yearStart) / 86400000 + 1) / 7);
+}
+
