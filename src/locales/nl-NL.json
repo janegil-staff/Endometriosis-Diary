@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Er is iets misgegaan. Controleer uw internetverbinding.",
 	"DASHBOARD_CLOSE": "Patiënt sluiten",
 	"DASH_REGISTRATIONS": "Registraties: {n}",
-	"DASH_COMING_SOON": "Hier komt het overzicht van het dagboek van de patiënt."
+	"DASH_COMING_SOON": "Hier komt het overzicht van het dagboek van de patiënt.",
+	"CAL_MONTH_SUM": "Maandtotaal",
+	"CAL_PERIOD": "Menstruatie",
+	"CAL_NO_PAIN": "Geen pijn",
+	"CAL_LIGHT": "Licht",
+	"CAL_MEDIUM": "Gemiddeld",
+	"CAL_HEAVY": "Hevig",
+	"CAL_EXTREME": "Extreem",
+	"CAL_MEDICATION": "Medicatie",
+	"CAL_NOTE": "Notitie",
+	"CAL_NO_REGISTRATION": "Niet geregistreerd",
+	"CAL_PREV_MONTH": "Vorige maand",
+	"CAL_NEXT_MONTH": "Volgende maand",
+	"CAL_DAY_ONE": "{n} dag",
+	"CAL_DAY_OTHER": "{n} dagen"
 }

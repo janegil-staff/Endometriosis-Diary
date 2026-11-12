@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Coś poszło nie tak. Sprawdź połączenie z internetem.",
 	"DASHBOARD_CLOSE": "Zamknij pacjenta",
 	"DASH_REGISTRATIONS": "Wpisy: {n}",
-	"DASH_COMING_SOON": "Tutaj pojawi się przegląd dziennika pacjentki."
+	"DASH_COMING_SOON": "Tutaj pojawi się przegląd dziennika pacjentki.",
+	"CAL_MONTH_SUM": "Suma miesiąca",
+	"CAL_PERIOD": "Miesiączka",
+	"CAL_NO_PAIN": "Brak bólu",
+	"CAL_LIGHT": "Lekki",
+	"CAL_MEDIUM": "Średni",
+	"CAL_HEAVY": "Silny",
+	"CAL_EXTREME": "Ekstremalny",
+	"CAL_MEDICATION": "Leki",
+	"CAL_NOTE": "Notatka",
+	"CAL_NO_REGISTRATION": "Nie zarejestrowano",
+	"CAL_PREV_MONTH": "Poprzedni miesiąc",
+	"CAL_NEXT_MONTH": "Następny miesiąc",
+	"CAL_DAY_ONE": "{n} dzień",
+	"CAL_DAY_OTHER": "{n} dni"
 }

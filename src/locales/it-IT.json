@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Si è verificato un errore. Controlla la connessione a Internet.",
 	"DASHBOARD_CLOSE": "Chiudi paziente",
 	"DASH_REGISTRATIONS": "Registrazioni: {n}",
-	"DASH_COMING_SOON": "Qui verrà mostrata la panoramica del diario della paziente."
+	"DASH_COMING_SOON": "Qui verrà mostrata la panoramica del diario della paziente.",
+	"CAL_MONTH_SUM": "Somma del mese",
+	"CAL_PERIOD": "Mestruazioni",
+	"CAL_NO_PAIN": "Nessun dolore",
+	"CAL_LIGHT": "Lieve",
+	"CAL_MEDIUM": "Media",
+	"CAL_HEAVY": "Forte",
+	"CAL_EXTREME": "Estrema",
+	"CAL_MEDICATION": "Farmaci",
+	"CAL_NOTE": "Nota",
+	"CAL_NO_REGISTRATION": "Non registrato",
+	"CAL_PREV_MONTH": "Mese precedente",
+	"CAL_NEXT_MONTH": "Mese successivo",
+	"CAL_DAY_ONE": "{n} giorno",
+	"CAL_DAY_OTHER": "{n} giorni"
 }

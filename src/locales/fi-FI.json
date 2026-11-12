@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Jokin meni vikaan. Tarkista internetyhteys.",
 	"DASHBOARD_CLOSE": "Sulje potilas",
 	"DASH_REGISTRATIONS": "Kirjauksia: {n}",
-	"DASH_COMING_SOON": "Potilaan päiväkirjan yleiskuva näytetään tässä."
+	"DASH_COMING_SOON": "Potilaan päiväkirjan yleiskuva näytetään tässä.",
+	"CAL_MONTH_SUM": "Kuukauden summa",
+	"CAL_PERIOD": "Kuukautiset",
+	"CAL_NO_PAIN": "Ei kipua",
+	"CAL_LIGHT": "Lievä",
+	"CAL_MEDIUM": "Keskivaikea",
+	"CAL_HEAVY": "Voimakas",
+	"CAL_EXTREME": "Äärimmäinen",
+	"CAL_MEDICATION": "Lääkkeet",
+	"CAL_NOTE": "Muistiinpano",
+	"CAL_NO_REGISTRATION": "Ei kirjattu",
+	"CAL_PREV_MONTH": "Edellinen kuukausi",
+	"CAL_NEXT_MONTH": "Seuraava kuukausi",
+	"CAL_DAY_ONE": "{n} päivä",
+	"CAL_DAY_OTHER": "{n} päivää"
 }

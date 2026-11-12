@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Etwas ist schiefgelaufen. Bitte überprüfen Sie Ihre Internetverbindung.",
 	"DASHBOARD_CLOSE": "Patient schließen",
 	"DASH_REGISTRATIONS": "Einträge: {n}",
-	"DASH_COMING_SOON": "Hier wird die Übersicht über das Tagebuch der Patientin angezeigt."
+	"DASH_COMING_SOON": "Hier wird die Übersicht über das Tagebuch der Patientin angezeigt.",
+	"CAL_MONTH_SUM": "Monatssumme",
+	"CAL_PERIOD": "Periode",
+	"CAL_NO_PAIN": "Keine Schmerzen",
+	"CAL_LIGHT": "Leicht",
+	"CAL_MEDIUM": "Mittel",
+	"CAL_HEAVY": "Stark",
+	"CAL_EXTREME": "Extrem",
+	"CAL_MEDICATION": "Medikamente",
+	"CAL_NOTE": "Notiz",
+	"CAL_NO_REGISTRATION": "Nicht erfasst",
+	"CAL_PREV_MONTH": "Vorheriger Monat",
+	"CAL_NEXT_MONTH": "Nächster Monat",
+	"CAL_DAY_ONE": "{n} Tag",
+	"CAL_DAY_OTHER": "{n} Tage"
 }

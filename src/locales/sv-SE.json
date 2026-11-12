@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Något gick fel. Kontrollera internetanslutningen.",
 	"DASHBOARD_CLOSE": "Stäng patient",
 	"DASH_REGISTRATIONS": "Registreringar: {n}",
-	"DASH_COMING_SOON": "Översikten över patientens dagbok visas här."
+	"DASH_COMING_SOON": "Översikten över patientens dagbok visas här.",
+	"CAL_MONTH_SUM": "Månadssumma",
+	"CAL_PERIOD": "Mens",
+	"CAL_NO_PAIN": "Ingen smärta",
+	"CAL_LIGHT": "Lätt",
+	"CAL_MEDIUM": "Medel",
+	"CAL_HEAVY": "Kraftig",
+	"CAL_EXTREME": "Extrem",
+	"CAL_MEDICATION": "Läkemedel",
+	"CAL_NOTE": "Anteckning",
+	"CAL_NO_REGISTRATION": "Inte registrerad",
+	"CAL_PREV_MONTH": "Föregående månad",
+	"CAL_NEXT_MONTH": "Nästa månad",
+	"CAL_DAY_ONE": "{n} dag",
+	"CAL_DAY_OTHER": "{n} dagar"
 }

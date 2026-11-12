@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Une erreur s'est produite. Vérifiez votre connexion Internet.",
 	"DASHBOARD_CLOSE": "Fermer le patient",
 	"DASH_REGISTRATIONS": "Enregistrements : {n}",
-	"DASH_COMING_SOON": "La vue d'ensemble du journal de la patiente s'affichera ici."
+	"DASH_COMING_SOON": "La vue d'ensemble du journal de la patiente s'affichera ici.",
+	"CAL_MONTH_SUM": "Somme du mois",
+	"CAL_PERIOD": "Règles",
+	"CAL_NO_PAIN": "Pas de douleur",
+	"CAL_LIGHT": "Légère",
+	"CAL_MEDIUM": "Moyenne",
+	"CAL_HEAVY": "Forte",
+	"CAL_EXTREME": "Extrême",
+	"CAL_MEDICATION": "Médicaments",
+	"CAL_NOTE": "Note",
+	"CAL_NO_REGISTRATION": "Non enregistré",
+	"CAL_PREV_MONTH": "Mois précédent",
+	"CAL_NEXT_MONTH": "Mois suivant",
+	"CAL_DAY_ONE": "{n} jour",
+	"CAL_DAY_OTHER": "{n} jours"
 }

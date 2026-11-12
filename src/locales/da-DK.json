@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Noget gik galt. Tjek din internetforbindelse.",
 	"DASHBOARD_CLOSE": "Luk patient",
 	"DASH_REGISTRATIONS": "Registreringer: {n}",
-	"DASH_COMING_SOON": "Overblikket over patientens dagbog vises her."
+	"DASH_COMING_SOON": "Overblikket over patientens dagbog vises her.",
+	"CAL_MONTH_SUM": "Månedssum",
+	"CAL_PERIOD": "Menstruation",
+	"CAL_NO_PAIN": "Ingen smerter",
+	"CAL_LIGHT": "Let",
+	"CAL_MEDIUM": "Middel",
+	"CAL_HEAVY": "Kraftig",
+	"CAL_EXTREME": "Ekstrem",
+	"CAL_MEDICATION": "Medicin",
+	"CAL_NOTE": "Note",
+	"CAL_NO_REGISTRATION": "Ikke registreret",
+	"CAL_PREV_MONTH": "Forrige måned",
+	"CAL_NEXT_MONTH": "Næste måned",
+	"CAL_DAY_ONE": "{n} dag",
+	"CAL_DAY_OTHER": "{n} dage"
 }

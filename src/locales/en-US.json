@@ -28,5 +28,19 @@
 	"ERROR_NETWORK": "Something went wrong. Check your internet connection.",
 	"DASHBOARD_CLOSE": "Close patient",
 	"DASH_REGISTRATIONS": "{n} registrations",
-	"DASH_COMING_SOON": "The overview of the patient's diary will be shown here."
+	"DASH_COMING_SOON": "The overview of the patient's diary will be shown here.",
+	"CAL_MONTH_SUM": "Month sum",
+	"CAL_PERIOD": "Period",
+	"CAL_NO_PAIN": "No pain",
+	"CAL_LIGHT": "Light",
+	"CAL_MEDIUM": "Medium",
+	"CAL_HEAVY": "Heavy",
+	"CAL_EXTREME": "Extreme",
+	"CAL_MEDICATION": "Medication",
+	"CAL_NOTE": "Note",
+	"CAL_NO_REGISTRATION": "Not registered",
+	"CAL_PREV_MONTH": "Previous month",
+	"CAL_NEXT_MONTH": "Next month",
+	"CAL_DAY_ONE": "{n} day",
+	"CAL_DAY_OTHER": "{n} days"
 }
