@@ -19,6 +19,7 @@ import {
   viewMonthStats,
   viewValue,
 } from "@/components/dashboard/data";
+import DayModal from "@/components/dashboard/DayModal";
 import { AcuteIcon, ChevronIcon, FaceIcon, MonthSumIcon, NoteIcon, PeriodIcon } from "@/components/dashboard/icons";
 
 // Tile colours per tone (pain level, or the matching colour for the other views), like the app (heavy has a darker ring inside)
@@ -55,6 +56,7 @@ export default function CalendarCard({ patient }) {
   const [viewField, setViewField] = useState(CALENDAR_VIEWS[0].field);
   const view = CALENDAR_VIEWS.find((v) => v.field === viewField) ?? CALENDAR_VIEWS[0];
   const scale = SCALES[view.scale];
+  const [openDay, setOpenDay] = useState(null); // "YYYY-MM-DD" shown in the day popup
 
   const index = year * 12 + month;
   const firstIndex = range ? Math.min(range.first.year * 12 + range.first.month, index) : index;
@@ -76,6 +78,18 @@ export default function CalendarCard({ patient }) {
   const today = todayKey();
   const s = monthStats(byDate, year, month);
   const vs = viewMonthStats(byDate, year, month, view);
+
+  // Day popup: step one day back or forward (not past today, not before the first registration),
+  // and keep the calendar on the month of the day shown
+  const firstKey = range ? toDateKey(range.first.year, range.first.month, 1) : today;
+  const stepDay = (step) => {
+    const [y, m, d] = openDay.split("-").map(Number);
+    const next = new Date(y, m - 1, d + step);
+    const key = toDateKey(next.getFullYear(), next.getMonth(), next.getDate());
+    if (key > today || key < firstKey) return;
+    setOpenDay(key);
+    setShown({ year: next.getFullYear(), month: next.getMonth() });
+  };
 
   return (
     <section className="rounded-3xl border border-white/70 bg-[#fdf1f2]/90 p-3 shadow-[0_10px_30px_-18px_rgba(160,40,50,0.45)] backdrop-blur sm:p-4">
@@ -152,19 +166,23 @@ export default function CalendarCard({ patient }) {
               <div
                 key={key}
                 role="gridcell"
-                aria-label={label}
                 title={label}
                 className="relative h-12 rounded-xl p-[5px] sm:h-[3.4rem]"
                 style={bleeding ? { backgroundColor: PERIOD_BG[Math.min(r.period, 5)] } : undefined}
               >
-                <div
-                  className={`flex h-full w-full items-center justify-center rounded-[0.9rem] text-[17px] font-bold tabular-nums ${tileClass} ${
+                <button
+                  type="button"
+                  onClick={() => setOpenDay(key)}
+                  disabled={isFuture}
+                  aria-label={label}
+                  aria-haspopup="dialog"
+                  className={`flex h-full w-full items-center justify-center rounded-[0.9rem] text-[17px] font-bold tabular-nums transition enabled:cursor-pointer enabled:hover:brightness-95 enabled:hover:ring-2 enabled:hover:ring-[#e8434f]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8434f] disabled:cursor-default ${tileClass} ${
                     isToday && r ? "ring-2 ring-[#e8434f] ring-offset-1" : ""
                   }`}
                   style={tileStyle}
                 >
                   {day}
-                </div>
+                </button>
                 {medication && (
                   <span className="pointer-events-none absolute -end-0.5 -top-0.5">
                     <AcuteIcon size={17} />
@@ -217,6 +235,18 @@ export default function CalendarCard({ patient }) {
           <SummaryRow icon={<AcuteIcon size={28} />} label={t.CAL_MEDICATION} value={formatDays(t, locale, s.medication)} />
         </ul>
       </div>
+
+      {openDay && (
+        <DayModal
+          dateKey={openDay}
+          record={byDate.get(openDay)}
+          patient={patient}
+          onClose={() => setOpenDay(null)}
+          onStep={stepDay}
+          canPrev={openDay > firstKey}
+          canNext={openDay < today}
+        />
+      )}
     </section>
   );
 }
