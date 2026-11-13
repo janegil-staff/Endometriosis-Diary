@@ -63,6 +63,80 @@ export function monthStats(byDate, year, month) {
   return s;
 }
 
+// ---------- What the calendar shows ("Show calendar" dropdown) ----------
+//
+// Each scale says which stored values count as an answer and how they are drawn:
+//   tone = which tile colour (same keys as the pain tiles: 1 grey, 2 green, 3 yellow, 4 red, 5 dark red)
+//   rows = the lines in the numbers under the calendar
+// 1–5 scales:  1 = none, 2–5 = light to extreme (like pain)
+// Absence:     1 = no, 2 = partly, 3 = all day
+// Sleep:       1 = poor, 2 = moderate, 3 = good – only answered when sleep hours were given,
+//              because the app saves 1 when the sleep question is turned off
+const levelRows = PAIN_LEVELS.map((v) => ({ value: v, tone: v, key: INTENSITY[v].key, face: INTENSITY[v].face }));
+
+export const SCALES = {
+  pain: { answered: (v) => v >= 1 && v <= 5, tone: (v) => v, noneKey: "CAL_NO_PAIN", rows: levelRows, sum: true },
+  level: { answered: (v) => v >= 1 && v <= 5, tone: (v) => v, noneKey: "LEVEL_NONE", rows: levelRows, sum: true },
+  absence: {
+    answered: (v) => v >= 1 && v <= 3,
+    tone: (v) => ({ 1: 1, 2: 3, 3: 4 })[v],
+    noneKey: "LEVEL_NO",
+    rows: [
+      { value: 2, tone: 3, key: "ABS_PARTIAL", face: "moderate" },
+      { value: 3, tone: 4, key: "ABS_ALL_DAY", face: "strong" },
+    ],
+  },
+  sleep: {
+    answered: (v, r) => (r?.sleepHours ?? 0) > 0 && v >= 1 && v <= 3,
+    tone: (v) => ({ 1: 4, 2: 3, 3: 2 })[v],
+    rows: [
+      { value: 3, tone: 2, key: "SLEEP_Q_3", face: "mild" },
+      { value: 2, tone: 3, key: "SLEEP_Q_2", face: "moderate" },
+      { value: 1, tone: 4, key: "SLEEP_Q_1", face: "strong" },
+    ],
+  },
+};
+
+// In the same order as the app's dropdown
+export const CALENDAR_VIEWS = [
+  { field: "intensity", key: "CAL_VIEW_INTENSITY", scale: "pain" },
+  { field: "bowelMovementPain", key: "CAL_VIEW_BOWEL", scale: "level" },
+  { field: "urinationPain", key: "CAL_VIEW_URINATION", scale: "level" },
+  { field: "endoBelly", key: "CAL_VIEW_ENDO_BELLY", scale: "level" },
+  { field: "fatigue", key: "CAL_VIEW_FATIGUE", scale: "level" },
+  { field: "stress", key: "CAL_VIEW_STRESS", scale: "level" },
+  { field: "sexualPain", key: "CAL_VIEW_SEXUAL_PAIN", scale: "level" },
+  { field: "absentWork", key: "CAL_VIEW_ABSENT_WORK", scale: "absence" },
+  { field: "absentSocial", key: "CAL_VIEW_ABSENT_SOCIAL", scale: "absence" },
+  { field: "sleepQuality", key: "CAL_VIEW_SLEEP", scale: "sleep" },
+];
+
+// The day's value for a view: { value, tone, key } or null when the question wasn't answered
+export function viewValue(view, r) {
+  if (!r) return null;
+  const scale = SCALES[view.scale];
+  const value = Number(r[view.field]) || 0;
+  if (!scale.answered(value, r)) return null;
+  const row = scale.rows.find((x) => x.value === value);
+  return { value, tone: scale.tone(value), key: row?.key ?? scale.noneKey };
+}
+
+// Counts per value for the shown month, and the sum (value − 1) for the 1–5 scales
+export function viewMonthStats(byDate, year, month, view) {
+  const prefix = `${monthKey(year, month)}-`;
+  const scale = SCALES[view.scale];
+  const s = { answered: 0, sum: 0, counts: Object.fromEntries(scale.rows.map((x) => [x.value, 0])) };
+  for (const [key, r] of byDate) {
+    if (!key.startsWith(prefix)) continue;
+    const v = viewValue(view, r);
+    if (!v) continue;
+    s.answered += 1;
+    if (s.counts[v.value] !== undefined) s.counts[v.value] += 1;
+    if (scale.sum) s.sum += v.value - 1;
+  }
+  return s;
+}
+
 // First and last month with registrations, so the arrows stop there
 export function monthRange(byDate) {
   const keys = [...byDate.keys()].sort();

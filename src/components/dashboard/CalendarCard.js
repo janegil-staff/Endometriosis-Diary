@@ -4,10 +4,10 @@
 import { useMemo, useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
 import {
+  CALENDAR_VIEWS,
   COLORS,
-  INTENSITY,
-  PAIN_LEVELS,
   PERIOD_BG,
+  SCALES,
   formatDays,
   hasBleeding,
   hasMedication,
@@ -16,10 +16,12 @@ import {
   monthStats,
   toDateKey,
   todayKey,
+  viewMonthStats,
+  viewValue,
 } from "@/components/dashboard/data";
 import { AcuteIcon, ChevronIcon, FaceIcon, MonthSumIcon, NoteIcon, PeriodIcon } from "@/components/dashboard/icons";
 
-// Tile colours per pain level, like the app (heavy has a darker ring inside)
+// Tile colours per tone (pain level, or the matching colour for the other views), like the app (heavy has a darker ring inside)
 const TILE_STYLE = {
   1: { backgroundColor: "#eef0f3", color: "#7b8794" },
   2: { backgroundColor: COLORS.mild, color: "#fff" },
@@ -50,6 +52,9 @@ export default function CalendarCard({ patient }) {
 
   const now = new Date();
   const [{ year, month }, setShown] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const [viewField, setViewField] = useState(CALENDAR_VIEWS[0].field);
+  const view = CALENDAR_VIEWS.find((v) => v.field === viewField) ?? CALENDAR_VIEWS[0];
+  const scale = SCALES[view.scale];
 
   const index = year * 12 + month;
   const firstIndex = range ? Math.min(range.first.year * 12 + range.first.month, index) : index;
@@ -70,6 +75,7 @@ export default function CalendarCard({ patient }) {
   const offset = (new Date(year, month, 1).getDay() + 6) % 7; // Monday first
   const today = todayKey();
   const s = monthStats(byDate, year, month);
+  const vs = viewMonthStats(byDate, year, month, view);
 
   return (
     <section className="rounded-3xl border border-white/70 bg-[#fdf1f2]/90 p-3 shadow-[0_10px_30px_-18px_rgba(160,40,50,0.45)] backdrop-blur sm:p-4">
@@ -114,7 +120,7 @@ export default function CalendarCard({ patient }) {
             const day = i + 1;
             const key = toDateKey(year, month, day);
             const r = byDate.get(key);
-            const level = Number(r?.intensity) || 0;
+            const v = viewValue(view, r);
             const isFuture = key > today;
             const isToday = key === today;
             const bleeding = hasBleeding(r);
@@ -122,7 +128,7 @@ export default function CalendarCard({ patient }) {
             const note = showNotes && !!r?.note;
 
             let tileClass = "";
-            let tileStyle = TILE_STYLE[level];
+            let tileStyle = v ? TILE_STYLE[v.tone] : r ? TILE_STYLE[1] : undefined;
             if (!tileStyle) {
               tileStyle = undefined;
               tileClass = isToday
@@ -134,7 +140,7 @@ export default function CalendarCard({ patient }) {
 
             const label = [
               longDate.format(new Date(year, month, day)),
-              r ? t[INTENSITY[level]?.key] : t.CAL_NO_REGISTRATION,
+              `${t[view.key]}: ${r ? (v ? t[v.key] : t.CAL_NOT_ANSWERED) : t.CAL_NO_REGISTRATION}`,
               bleeding && t.CAL_PERIOD,
               medication && t.CAL_MEDICATION,
               note && t.CAL_NOTE,
@@ -175,17 +181,37 @@ export default function CalendarCard({ patient }) {
         </div>
       </div>
 
-      {/* The month's numbers, like the app */}
+      {/* What the calendar shows, like the app's "Show calendar" dropdown */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-1">
+        <label htmlFor="calendar-view" className="text-[17px] font-semibold text-slate-800">
+          {t.CAL_VIEW_LABEL}
+        </label>
+        <select
+          id="calendar-view"
+          value={view.field}
+          onChange={(e) => setViewField(e.target.value)}
+          className="min-w-0 flex-1 cursor-pointer rounded-xl border border-white bg-white px-3 py-2.5 text-[15px] font-semibold text-slate-800 shadow-[0_6px_18px_-8px_rgba(160,40,50,0.35)] focus:outline-none focus:ring-2 focus:ring-[#f9c9ce]"
+        >
+          {CALENDAR_VIEWS.map((x) => (
+            <option key={x.field} value={x.field}>
+              {t[x.key]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* The month's numbers, like the app – they follow the dropdown */}
       <div className="mt-4 rounded-[1.6rem] bg-white px-5 py-3 shadow-[0_6px_18px_-8px_rgba(160,40,50,0.35)]">
+        <h3 className="pb-1 pt-1 text-center text-sm font-bold uppercase tracking-[0.12em] text-[#b5655c]">{t[view.key]}</h3>
         <ul>
-          <SummaryRow icon={<MonthSumIcon />} label={t.CAL_MONTH_SUM} value={s.registered ? s.sum : "–"} />
+          {scale.sum && <SummaryRow icon={<MonthSumIcon />} label={t.CAL_MONTH_SUM} value={vs.answered ? vs.sum : "–"} />}
           <SummaryRow icon={<PeriodIcon />} label={t.CAL_PERIOD} value={formatDays(t, locale, s.period)} />
-          {PAIN_LEVELS.map((level) => (
+          {scale.rows.map((row) => (
             <SummaryRow
-              key={level}
-              icon={<FaceIcon face={INTENSITY[level].face} />}
-              label={t[INTENSITY[level].key]}
-              value={formatDays(t, locale, s.levels[level])}
+              key={row.value}
+              icon={<FaceIcon face={row.face} />}
+              label={t[row.key]}
+              value={formatDays(t, locale, vs.counts[row.value])}
             />
           ))}
           <SummaryRow icon={<AcuteIcon size={28} />} label={t.CAL_MEDICATION} value={formatDays(t, locale, s.medication)} />
