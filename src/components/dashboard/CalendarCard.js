@@ -145,8 +145,9 @@ export default function CalendarCard({ patient }) {
             let tileStyle = v ? TILE_STYLE[v.tone] : r ? TILE_STYLE[1] : undefined;
             if (!tileStyle) {
               tileStyle = undefined;
+              // Today without a registration: no colour, just a black border
               tileClass = isToday
-                ? "bg-[#e8434f] text-white"
+                ? "border-2 border-slate-900 bg-white text-slate-900"
                 : isFuture
                   ? "text-slate-300"
                   : "border-[1.5px] border-[#eadfe0] bg-white text-slate-400";

@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
+import AdviceModal, { relevantAdvice } from "@/components/dashboard/AdviceModal";
 import CompareModal from "@/components/dashboard/CompareModal";
 import EndoLog from "@/components/dashboard/EndoLog";
 import Modal from "@/components/dashboard/Modal";
@@ -39,12 +40,12 @@ function Number({ label, value }) {
   );
 }
 
-// "Summary" in the right sidebar: the last 30 days, then summary table, before/after comparison, log and medication
+// "Summary" in the right sidebar: the last 30 days, then summary table, before/after comparison, log, relevant advice and medication
 export default function SummaryCard({ patient }) {
   const { t } = useLocale();
   const byDate = useMemo(() => indexRecords(patient?.records), [patient]);
   const [options, setOption] = useSummaryOptions();
-  const [open, setOpen] = useState(null); // "summary" | "compare" | "log" | "medication" | "previous"
+  const [open, setOpen] = useState(null); // "summary" | "compare" | "log" | "advice" | "medication" | "previous"
   const close = () => setOpen(null);
   const last30 = rangeStats(byDate, addDays(startOfToday(), -29), 30);
 
@@ -69,6 +70,9 @@ export default function SummaryCard({ patient }) {
         <MenuButton onClick={() => setOpen("log")} badge={patient?.records?.length ?? 0}>
           {t.SUM_BTN_LOG}
         </MenuButton>
+        <MenuButton onClick={() => setOpen("advice")} badge={relevantAdvice(patient).length}>
+          {t.ADV_TITLE}
+        </MenuButton>
         <MenuButton onClick={() => setOpen("medication")} badge={medicationCount(patient)}>
           {t.MED_TITLE}
         </MenuButton>
@@ -82,6 +86,7 @@ export default function SummaryCard({ patient }) {
       <Modal open={open === "log"} onClose={close} title={t.LOG_TITLE} fullHeight>
         <EndoLog patient={patient} />
       </Modal>
+      <AdviceModal open={open === "advice"} onClose={close} patient={patient} />
       <MedicationModal open={open === "medication"} onClose={close} patient={patient} />
       <PreviousMedicationModal open={open === "previous"} onClose={close} patient={patient} />
     </section>
